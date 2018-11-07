@@ -16,23 +16,35 @@
 	],
 	"activationEvents": [
 		"onFileSystem:hypermergefs",
-		"onCommand:hypermergefs.workspaceInit",
-		"onCommand:hypermergefs.init",
-		"onCommand:hypermergefs.reset"
+		"onView:hypermergeExplorer"
 	],
 	"main": "./out/src/extension",
 	"contributes": {
 		"commands": [
 			{
-				"command": "hypermergefs.open",
-				"title": "Open a Hypermerge URL",
-				"category": "HypermergeFS"
+				"command": "hypermergeExplorer.register",
+				"title": "Add new Root"
 			}
 		],
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "hypermergefs.open",
+					"command": "hypermergeExplorer.register",
+					"when": "workbenchState == workspace"
+				}
+			],
+			"view/title": [
+				{
+					"command": "hypermergeExplorer.register",
+					"when": "view == hypermergeExplorer"
+				}
+			]
+		},
+		"views": {
+			"explorer": [
+				{
+					"id": "hypermergeExplorer",
+					"name": "HypermergeFS",
 					"when": "workbenchState == workspace"
 				}
 			]
