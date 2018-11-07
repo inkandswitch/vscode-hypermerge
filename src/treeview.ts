@@ -27,14 +27,22 @@ export class HypermergeModel {
     return "" // we can return a hint string if it's invalid
   }
 
+  public addRoot(uriString: string) {
+    const roots = vscode.workspace.getConfiguration('hypermergefs').get<string[]>('roots') || []
+    vscode.workspace.getConfiguration('hypermergefs').update('roots', [uriString, ...roots], vscode.ConfigurationTarget.Global)
+  }
 
   public get roots(): Thenable<HypermergeNode[]> {
-    return Promise.resolve([
-      {
-        resource: vscode.Uri.parse("hypermergefs:/root"),
-        label: "Root",
-        isDirectory: true
-      }])
+    return new Promise((resolve) => {
+      const roots = vscode.workspace.getConfiguration('hypermergefs').get<string[]>('roots') || []
+      resolve(
+        roots.map((root, i) => ({
+          resource: vscode.Uri.parse(root),
+          label: this.hypermerge.parseUri(vscode.Uri.parse(root)),
+          isDirectory: true
+        }))
+      )
+    })
   }
 
   public getChildren(node: HypermergeNode): Thenable<HypermergeNode[]> {
@@ -103,14 +111,20 @@ export class HypermergeExplorer {
       () => treeDataProvider.refresh()
     );
 
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('hypermergefs.roots')) {
+        treeDataProvider.refresh()
+      }
+    }))
+
     vscode.commands.registerCommand('hypermergeExplorer.register', async () => {
       const uriString = await vscode.window.showInputBox({
         placeHolder: 'Browse which hypermerge URL?',
         validateInput: hypermergeModel.validateURL
       });
       if (uriString) {
-        const uri = vscode.Uri.parse(uriString)
-        vscode.window.showInformationMessage(`Tried to add ${uri.toString()}`)
+        hypermergeModel.addRoot(uriString)
+        treeDataProvider.refresh()
       }
     });
 

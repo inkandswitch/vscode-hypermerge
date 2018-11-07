@@ -9,7 +9,12 @@ export class FauxMerge {
       ],
       "some stuff": ['a', 'b', 'c']
     },
-    "doc1": { "content": "bar" },
+    "doc1": {
+      "children": [
+        ["doc2", "hypermergefs:/doc2"]
+      ],
+      "content": "bar"
+    },
     "doc2": { "bing": "bong" }
   }
 

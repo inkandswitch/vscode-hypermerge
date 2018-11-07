@@ -20,6 +20,18 @@
 	],
 	"main": "./out/src/extension",
 	"contributes": {
+		"configuration": {
+			"title": "HypermergeFS",
+			"properties": {
+				"hypermergefs.roots": {
+					"type": "array",
+					"default": [
+						"hypermergefs:/root"
+					],
+					"description": "A list of hypermergefs URLs to use as roots in the browser."
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "hypermergeExplorer.register",
