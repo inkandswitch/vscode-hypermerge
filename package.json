@@ -1,0 +1,52 @@
+{
+	"name": "vscode-hypermergefs",
+	"displayName": "HypermergeFS",
+	"description": "Browse and edit a Hypermerge document tree.",
+	"version": "0.0.1",
+	"publisher": "inkandswitch",
+	"repository": {
+		"url": "https://github.com/inkandswitch/hypermergefs.git",
+		"type": "git"
+	},
+	"engines": {
+		"vscode": "^1.23.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onFileSystem:hypermergefs",
+		"onCommand:hypermergefs.workspaceInit",
+		"onCommand:hypermergefs.init",
+		"onCommand:hypermergefs.reset"
+	],
+	"main": "./out/src/extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "hypermergefs.open",
+				"title": "Open a Hypermerge URL",
+				"category": "HypermergeFS"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "hypermergefs.open",
+					"when": "workbenchState == workspace"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install"
+	},
+	"devDependencies": {
+		"typescript": "^2.5.2",
+		"vscode": "^1.1.17",
+		"@types/node": "^7.0.43"
+	}
+}
