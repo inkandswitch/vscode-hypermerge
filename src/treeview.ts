@@ -19,22 +19,6 @@ export class HypermergeModel {
     });
   }
 
-  validateURL(input: string) {
-    let url;
-    try {
-      url = vscode.Uri.parse(input);
-    } catch {
-      return "invalid URL";
-    }
-    if (url.scheme !== "hypermergefs") {
-      return "invalid scheme -- must be a hypermergefs URL";
-    }
-    if (url.authority != "") {
-      return "invalid format";
-    }
-    return ""; // we can return a hint string if it's invalid
-  }
-
   public addRoot(uriString: string) {
     const roots =
       vscode.workspace
@@ -165,7 +149,7 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.register", async () => {
       const uriString = await vscode.window.showInputBox({
         placeHolder: "Browse which hypermerge URL?",
-        validateInput: hypermergeModel.validateURL
+        validateInput: this.validateURL
       });
       if (uriString) {
         hypermergeModel.addRoot(uriString);
@@ -176,6 +160,22 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
       this.reveal()
     );
+  }
+
+  validateURL(input: string) {
+    let url;
+    try {
+      url = vscode.Uri.parse(input);
+    } catch {
+      return "invalid URL";
+    }
+    if (url.scheme !== "hypermergefs") {
+      return "invalid scheme -- must be a hypermergefs URL";
+    }
+    if (url.authority != "") {
+      return "invalid format";
+    }
+    return ""; // we can return a hint string if it's invalid
   }
 
   private reveal(): Thenable<void> | null {
