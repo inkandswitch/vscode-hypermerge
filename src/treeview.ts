@@ -71,16 +71,10 @@ export class HypermergeModel {
       resolve(subNodes);
     });
   }
-
-  public getContent(resource: vscode.Uri): Thenable<string> {
-    return Promise.resolve(`content ${resource.toString()}`);
-  }
 }
 
 export class HypermergeTreeDataProvider
-  implements
-    vscode.TreeDataProvider<HypermergeNode>,
-    vscode.TextDocumentContentProvider {
+  implements vscode.TreeDataProvider<HypermergeNode> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     any
   > = new vscode.EventEmitter<any>();
@@ -119,13 +113,6 @@ export class HypermergeTreeDataProvider
     return parent.path !== "//"
       ? { label: "parentHACK", resource: parent, isDirectory: true }
       : null;
-  }
-
-  public provideTextDocumentContent(
-    uri: vscode.Uri,
-    token: vscode.CancellationToken
-  ): vscode.ProviderResult<string> {
-    return this.model.getContent(uri).then(content => content);
   }
 }
 
