@@ -36,10 +36,6 @@
       {
         "command": "hypermergeExplorer.register",
         "title": "Add new Root"
-      },
-      {
-        "command": "hypermergeExplorer.open",
-        "title": "Open document"
       }
     ],
     "menus": {

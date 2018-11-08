@@ -109,7 +109,7 @@ export class HypermergeTreeDataProvider
       resourceUri: uri,
       collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
       command: {
-        command: "hypermergeExplorer.open",
+        command: "vscode.open",
         arguments: [uri],
         title: "Open Hypermerge Document"
       }
@@ -173,18 +173,9 @@ export class HypermergeExplorer {
       }
     });
 
-    vscode.commands.registerCommand("hypermergeExplorer.open", resource =>
-      this.openResource(resource)
-    );
     vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
       this.reveal()
     );
-  }
-
-  private openResource(resource: vscode.Uri): void {
-    vscode.workspace.openTextDocument(resource).then(document => {
-      vscode.window.showTextDocument(document);
-    });
   }
 
   private reveal(): Thenable<void> | null {
