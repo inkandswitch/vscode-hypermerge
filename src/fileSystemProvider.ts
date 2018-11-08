@@ -7,6 +7,10 @@ export class HypermergeFS implements vscode.FileSystemProvider {
   hypermerge: HypermergeWrapper;
   constructor(hypermergeWrapper: HypermergeWrapper) {
     this.hypermerge = hypermergeWrapper;
+
+    this.hypermerge.on("update", uri => {
+      this._fireSoon({ type: vscode.FileChangeType.Changed, uri });
+    });
   }
 
   // --- manage file metadata
