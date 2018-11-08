@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { HypermergeWrapper } from "./fauxmerge";
+import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
 
 export type HypermergeNodeKey = string;
 
@@ -15,6 +15,7 @@ export class HypermergeTreeDataProvider
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
     this.hypermergeWrapper.addListener("update", uri => {
+      // XXX FIXME this broke
       this._onDidChangeTreeData.fire(uri.toString());
     });
   }
@@ -25,14 +26,24 @@ export class HypermergeTreeDataProvider
 
   public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
     // XXX: we should be building a cache of results & maintaining it over time here
-    const uri = vscode.Uri.parse(element);
+    const resourceUri = vscode.Uri.parse(element);
+    const { docId, keyPath } = interpretHypermergeUri(resourceUri);
+    let label;
+    if (keyPath.length) {
+      label = keyPath.pop();
+    } else {
+      label = docId;
+    }
+
+    // ideally we should determine if the node has / can have children
+    const collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
     return {
-      label: uri.path.slice(1),
-      resourceUri: uri,
-      collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+      label,
+      resourceUri,
+      collapsibleState,
       command: {
         command: "vscode.open",
-        arguments: [uri],
+        arguments: [resourceUri],
         title: "Open Hypermerge Document"
       }
     };
@@ -62,25 +73,17 @@ export class HypermergeTreeDataProvider
     });
   }
 
-  private extractChildren(document: any): Map<string, HypermergeNodeKey> {
-    const children = new Map();
-    if (document.children) {
-      // hardcoded "children" field for now, should traverse the doc
-      // extracting child links
-      document.children.forEach(([name, uri]) => children.set(name, uri));
-    }
-    return children;
-  }
-
   private getDocumentChildren(
     node: HypermergeNodeKey
   ): Thenable<HypermergeNodeKey[]> {
-    return new Promise(resolve => {
-      const parentDoc = this.hypermergeWrapper.openDocumentUri(
-        vscode.Uri.parse(node)
-      );
-      const childNodes = this.extractChildren(parentDoc);
-      resolve(Array.from(childNodes.values()));
+    const uri = vscode.Uri.parse(node);
+    return this.hypermergeWrapper.openDocumentUri(uri).then((content: any) => {
+      if (!(content instanceof Object)) {
+        return [];
+      }
+      const children = Object.keys(content);
+      const childNodes = children.map(child => node + "/" + child);
+      return childNodes;
     });
   }
 
