@@ -15,6 +15,12 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  vscode.workspace.onDidOpenTextDocument(document => {
+    if (document.uri.scheme === "hypermergefs") {
+      (vscode.languages as any).setTextDocumentLanguage(document, "json");
+    }
+  });
+
   // self-registers
   new HypermergeExplorer(context, hypermergeWrapper);
 }

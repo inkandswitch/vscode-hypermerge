@@ -1,15 +1,13 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper } from "./fauxmerge";
 
-export interface HypermergeNode {
-  resource: vscode.Uri;
-}
+export type HypermergeNodeKey = string;
 
 export class HypermergeModel {
   // emit updates to the TreeDataProvider when a document changes
   private _onDocumentUpdated: vscode.EventEmitter<
-    HypermergeNode | undefined
-  > = new vscode.EventEmitter<HypermergeNode | undefined>();
+    HypermergeNodeKey | undefined
+  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
   readonly onDocumentUpdated: vscode.Event<any> = this._onDocumentUpdated.event;
 
   hypermerge: HypermergeWrapper;
@@ -17,9 +15,7 @@ export class HypermergeModel {
     this.hypermerge = hypermergeWrapper;
 
     this.hypermerge.addListener("update", uri => {
-      this._onDocumentUpdated.fire({
-        resource: uri
-      });
+      this._onDocumentUpdated.fire(uri.toString());
     });
   }
 
@@ -53,47 +49,51 @@ export class HypermergeModel {
       );
   }
 
-  public get roots(): Thenable<HypermergeNode[]> {
+  public get roots(): Thenable<HypermergeNodeKey[]> {
     return new Promise(resolve => {
       const roots =
         vscode.workspace
           .getConfiguration("hypermergefs")
           .get<string[]>("roots") || [];
-      resolve(
-        roots.map((root, i) => ({
-          resource: vscode.Uri.parse(root)
-        }))
-      );
+      resolve(roots);
     });
   }
 
-  public getChildren(node: HypermergeNode): Thenable<HypermergeNode[]> {
+  private extractChildren(document: any): Map<string, HypermergeNodeKey> {
+    const children = new Map();
+    if (document.children) {
+      // hardcoded "children" field for now, should traverse the doc
+      // extracting child links
+      document.children.forEach(([name, uri]) => children.set(name, uri));
+    }
+    return children;
+  }
+
+  public getChildren(node: HypermergeNodeKey): Thenable<HypermergeNodeKey[]> {
     return new Promise(resolve => {
-      const subDoc = this.hypermerge.openDocumentUri(node.resource);
-      const { children = [] } = subDoc;
-      const subNodes = children.map(([name, uri]) => ({
-        resource: vscode.Uri.parse(uri)
-      }));
-      resolve(subNodes);
+      const parentDoc = this.hypermerge.openDocumentUri(vscode.Uri.parse(node));
+      const childNodes = this.extractChildren(parentDoc);
+      resolve(Array.from(childNodes.values()));
     });
   }
 }
 
 export class HypermergeTreeDataProvider
-  implements vscode.TreeDataProvider<HypermergeNode> {
+  implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    HypermergeNode | undefined
-  > = new vscode.EventEmitter<HypermergeNode | undefined>();
-  readonly onDidChangeTreeData: vscode.Event<HypermergeNode | undefined> = this
-    ._onDidChangeTreeData.event;
+    HypermergeNodeKey | undefined
+  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
+  readonly onDidChangeTreeData: vscode.Event<
+    HypermergeNodeKey | undefined
+  > = this._onDidChangeTreeData.event;
 
   constructor(private readonly model: HypermergeModel) {
-    this.model.onDocumentUpdated(event => {
+    this.model.onDocumentUpdated(uri => {
       // Right now, down in extHostTreeViews.ts we eventually reach a refresh() call which
       // tries to pull the value below out of "this.nodes" and can't, because it's a compound value.
       // ... so, this will refresh the whole tree which is fine for now.
       // this._onDidChangeTreeData.fire(event);
-      this._onDidChangeTreeData.fire();
+      this._onDidChangeTreeData.fire(uri.toString());
     });
   }
 
@@ -101,42 +101,43 @@ export class HypermergeTreeDataProvider
     this._onDidChangeTreeData.fire();
   }
 
-  public getTreeItem(element: HypermergeNode): vscode.TreeItem {
+  public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
+    // XXX: we should be building a cache of results & maintaining it over time here
+    const uri = vscode.Uri.parse(element);
     return {
-      label: element.resource.path.slice(1),
-      resourceUri: element.resource,
+      label: uri.path.slice(1),
+      resourceUri: uri,
       collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
       command: {
         command: "hypermergeExplorer.open",
-        arguments: [element.resource],
+        arguments: [uri],
         title: "Open Hypermerge Document"
       }
     };
   }
 
   public getChildren(
-    element?: HypermergeNode
-  ): HypermergeNode[] | Thenable<HypermergeNode[]> {
+    element?: HypermergeNodeKey
+  ): HypermergeNodeKey[] | Thenable<HypermergeNodeKey[]> {
     return element ? this.model.getChildren(element) : this.model.roots;
   }
 
-  public getParent(element: HypermergeNode): HypermergeNode | null {
-    // there isn't necessarily a parent for a particular node in our system
+  public getParent(element: HypermergeNodeKey): HypermergeNodeKey | null {
+    // there isn't necessarily a parent for a particular node in our system..
+    // or at least not the way i'm currently modeling it
+    // XX: the node key should arguably be a path of some kind?
     return null;
   }
 }
 
 export class HypermergeExplorer {
   // TODO:
-  // we can + should watch open files for edits and refresh those nodes
-  // we should set the media type to JSON
   // plus icon for "add root"
   // better error reporting on invalid json
-  // watch files for incoming changes
   // actually diff the files on save instead of replacing them
-  // set language to JSON on vscode.open and not just hypermergefs.open
+  // handle missing files in the tree view
 
-  private hypermergeViewer: vscode.TreeView<HypermergeNode>;
+  private hypermergeViewer: vscode.TreeView<HypermergeNodeKey>;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -182,7 +183,6 @@ export class HypermergeExplorer {
 
   private openResource(resource: vscode.Uri): void {
     vscode.workspace.openTextDocument(resource).then(document => {
-      (vscode.languages as any).setTextDocumentLanguage(document, "json");
       vscode.window.showTextDocument(document);
     });
   }
@@ -195,14 +195,11 @@ export class HypermergeExplorer {
     return null;
   }
 
-  private getNode(): HypermergeNode | null {
-    if (vscode.window.activeTextEditor) {
-      if (
-        vscode.window.activeTextEditor.document.uri.scheme === "hypermergefs"
-      ) {
-        return {
-          resource: vscode.window.activeTextEditor.document.uri
-        };
+  private getNode(): HypermergeNodeKey | null {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      if (editor.document.uri.scheme === "hypermergefs") {
+        return editor.document.uri.toString();
       }
     }
     return null;
