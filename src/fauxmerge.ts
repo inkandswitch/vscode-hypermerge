@@ -5,7 +5,7 @@ const { keyPair } = require("hypercore/lib/crypto");
 const raf = require("random-access-file");
 import DiscoveryCloud from "./discovery-cloud/client";
 import { EventEmitter } from "events";
-import { rejects } from "assert";
+import { DeepDiff } from "deep-diff";
 
 interface HypermergeNodeDetails {
   docId: string;
@@ -28,7 +28,9 @@ export class HypermergeWrapper extends EventEmitter {
     super();
 
     const stream = this.hypermerge.stream;
-    const id = Buffer.from("vscode-extension");
+    const id = Buffer.from(
+      "vscode-extension-" + Math.round(Math.random() * 1000)
+    );
     const url = "wss://discovery-cloud.herokuapp.com";
 
     const hyperswarmwrapper = new DiscoveryCloud({ stream, id, url });
@@ -98,9 +100,8 @@ export class HypermergeWrapper extends EventEmitter {
         }
         content = content[key];
       }
-      Object.keys(newDoc).forEach(key => {
-        content[key] = newDoc[key];
-      });
+
+      DeepDiff.applyDiff(content, newDoc);
     });
   }
 }
