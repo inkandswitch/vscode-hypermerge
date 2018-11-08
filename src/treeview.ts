@@ -2,15 +2,25 @@ import * as vscode from "vscode";
 import { HypermergeWrapper } from "./fauxmerge";
 
 export interface HypermergeNode {
-  label: string;
   resource: vscode.Uri;
-  isDirectory: boolean;
 }
 
 export class HypermergeModel {
+  // emit updates to the TreeDataProvider when a document changes
+  private _onDocumentUpdated: vscode.EventEmitter<
+    HypermergeNode | undefined
+  > = new vscode.EventEmitter<HypermergeNode | undefined>();
+  readonly onDocumentUpdated: vscode.Event<any> = this._onDocumentUpdated.event;
+
   hypermerge: HypermergeWrapper;
   constructor(hypermergeWrapper: HypermergeWrapper) {
     this.hypermerge = hypermergeWrapper;
+
+    this.hypermerge.addListener("update", uri => {
+      this._onDocumentUpdated.fire({
+        resource: uri
+      });
+    });
   }
 
   validateURL(input: string) {
@@ -51,9 +61,7 @@ export class HypermergeModel {
           .get<string[]>("roots") || [];
       resolve(
         roots.map((root, i) => ({
-          resource: vscode.Uri.parse(root),
-          label: this.hypermerge.parseUri(vscode.Uri.parse(root)),
-          isDirectory: true
+          resource: vscode.Uri.parse(root)
         }))
       );
     });
@@ -64,9 +72,7 @@ export class HypermergeModel {
       const subDoc = this.hypermerge.openDocumentUri(node.resource);
       const { children = [] } = subDoc;
       const subNodes = children.map(([name, uri]) => ({
-        label: name,
-        resource: vscode.Uri.parse(uri),
-        isDirectory: false
+        resource: vscode.Uri.parse(uri)
       }));
       resolve(subNodes);
     });
@@ -76,12 +82,20 @@ export class HypermergeModel {
 export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNode> {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    any
-  > = new vscode.EventEmitter<any>();
-  readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData
-    .event;
+    HypermergeNode | undefined
+  > = new vscode.EventEmitter<HypermergeNode | undefined>();
+  readonly onDidChangeTreeData: vscode.Event<HypermergeNode | undefined> = this
+    ._onDidChangeTreeData.event;
 
-  constructor(private readonly model: HypermergeModel) {}
+  constructor(private readonly model: HypermergeModel) {
+    this.model.onDocumentUpdated(event => {
+      // Right now, down in extHostTreeViews.ts we eventually reach a refresh() call which
+      // tries to pull the value below out of "this.nodes" and can't, because it's a compound value.
+      // ... so, this will refresh the whole tree which is fine for now.
+      // this._onDidChangeTreeData.fire(event);
+      this._onDidChangeTreeData.fire();
+    });
+  }
 
   public refresh(): any {
     this._onDidChangeTreeData.fire();
@@ -89,11 +103,9 @@ export class HypermergeTreeDataProvider
 
   public getTreeItem(element: HypermergeNode): vscode.TreeItem {
     return {
-      label: element.label || element.resource.path.slice(1),
+      label: element.resource.path.slice(1),
       resourceUri: element.resource,
-      collapsibleState: element.isDirectory
-        ? vscode.TreeItemCollapsibleState.Collapsed
-        : void 0,
+      collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
       command: {
         command: "hypermergeExplorer.open",
         arguments: [element.resource],
@@ -109,10 +121,8 @@ export class HypermergeTreeDataProvider
   }
 
   public getParent(element: HypermergeNode): HypermergeNode | null {
-    const parent = element.resource.with({ path: element.resource.path });
-    return parent.path !== "//"
-      ? { label: "parentHACK", resource: parent, isDirectory: true }
-      : null;
+    // there isn't necessarily a parent for a particular node in our system
+    return null;
   }
 }
 
@@ -191,9 +201,7 @@ export class HypermergeExplorer {
         vscode.window.activeTextEditor.document.uri.scheme === "hypermergefs"
       ) {
         return {
-          label: "getnodehack",
-          resource: vscode.window.activeTextEditor.document.uri,
-          isDirectory: false
+          resource: vscode.window.activeTextEditor.document.uri
         };
       }
     }
