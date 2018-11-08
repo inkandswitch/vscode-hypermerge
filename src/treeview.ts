@@ -76,7 +76,7 @@ export class HypermergeTreeDataProvider implements vscode.TreeDataProvider<Hyper
       resourceUri: element.resource,
       collapsibleState: element.isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : void 0,
       command: {
-        command: 'vscode.open',
+        command: 'hypermergeExplorer.open',
         arguments: [element.resource],
         title: 'Open Hypermerge Document'
       }
@@ -98,6 +98,14 @@ export class HypermergeTreeDataProvider implements vscode.TreeDataProvider<Hyper
 }
 
 export class HypermergeExplorer {
+  // TODO: 
+  // we can + should watch open files for edits and refresh those nodes
+  // we should set the media type to JSON
+  // plus icon for "add root"
+  // better error reporting on invalid json
+  // watch files for incoming changes
+  // actually diff the files on save instead of replacing them
+  // set language to JSON on vscode.open and not just hypermergefs.open
 
   private hypermergeViewer: vscode.TreeView<HypermergeNode>;
 
@@ -128,7 +136,7 @@ export class HypermergeExplorer {
       }
     });
 
-    vscode.commands.registerCommand('hypermergeExplorer.openHypermergeResource',
+    vscode.commands.registerCommand('hypermergeExplorer.open',
       resource => this.openResource(resource)
     );
     vscode.commands.registerCommand('hypermergeExplorer.revealResource',
@@ -137,7 +145,10 @@ export class HypermergeExplorer {
   }
 
   private openResource(resource: vscode.Uri): void {
-    vscode.window.showTextDocument(resource);
+    vscode.workspace.openTextDocument(resource).then((document) => {
+      ; (vscode.languages as any).setTextDocumentLanguage(document, 'json')
+      vscode.window.showTextDocument(document)
+    });
   }
 
   private reveal(): Thenable<void> | null {
