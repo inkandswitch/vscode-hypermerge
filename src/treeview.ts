@@ -3,65 +3,6 @@ import { HypermergeWrapper } from "./fauxmerge";
 
 export type HypermergeNodeKey = string;
 
-export class HypermergeModel {
-  // emit updates to the TreeDataProvider when a document changes
-  private _onDocumentUpdated: vscode.EventEmitter<
-    HypermergeNodeKey | undefined
-  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
-  readonly onDocumentUpdated: vscode.Event<any> = this._onDocumentUpdated.event;
-
-  hypermerge: HypermergeWrapper;
-  constructor(hypermergeWrapper: HypermergeWrapper) {
-    this.hypermerge = hypermergeWrapper;
-
-    this.hypermerge.addListener("update", uri => {
-      this._onDocumentUpdated.fire(uri.toString());
-    });
-  }
-
-  public addRoot(uriString: string) {
-    const roots =
-      vscode.workspace
-        .getConfiguration("hypermergefs")
-        .get<string[]>("roots") || [];
-    vscode.workspace
-      .getConfiguration("hypermergefs")
-      .update(
-        "roots",
-        [uriString, ...roots],
-        vscode.ConfigurationTarget.Global
-      );
-  }
-
-  public get roots(): Thenable<HypermergeNodeKey[]> {
-    return new Promise(resolve => {
-      const roots =
-        vscode.workspace
-          .getConfiguration("hypermergefs")
-          .get<string[]>("roots") || [];
-      resolve(roots);
-    });
-  }
-
-  private extractChildren(document: any): Map<string, HypermergeNodeKey> {
-    const children = new Map();
-    if (document.children) {
-      // hardcoded "children" field for now, should traverse the doc
-      // extracting child links
-      document.children.forEach(([name, uri]) => children.set(name, uri));
-    }
-    return children;
-  }
-
-  public getChildren(node: HypermergeNodeKey): Thenable<HypermergeNodeKey[]> {
-    return new Promise(resolve => {
-      const parentDoc = this.hypermerge.openDocumentUri(vscode.Uri.parse(node));
-      const childNodes = this.extractChildren(parentDoc);
-      resolve(Array.from(childNodes.values()));
-    });
-  }
-}
-
 export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -71,12 +12,8 @@ export class HypermergeTreeDataProvider
     HypermergeNodeKey | undefined
   > = this._onDidChangeTreeData.event;
 
-  constructor(private readonly model: HypermergeModel) {
-    this.model.onDocumentUpdated(uri => {
-      // Right now, down in extHostTreeViews.ts we eventually reach a refresh() call which
-      // tries to pull the value below out of "this.nodes" and can't, because it's a compound value.
-      // ... so, this will refresh the whole tree which is fine for now.
-      // this._onDidChangeTreeData.fire(event);
+  constructor(private readonly hypermerge: HypermergeWrapper) {
+    this.hypermerge.addListener("update", uri => {
       this._onDidChangeTreeData.fire(uri.toString());
     });
   }
@@ -100,10 +37,54 @@ export class HypermergeTreeDataProvider
     };
   }
 
+  public addRoot(uriString: string) {
+    const roots =
+      vscode.workspace
+        .getConfiguration("hypermergefs")
+        .get<string[]>("roots") || [];
+    vscode.workspace
+      .getConfiguration("hypermergefs")
+      .update(
+        "roots",
+        [uriString, ...roots],
+        vscode.ConfigurationTarget.Global
+      );
+  }
+
+  private roots(): Thenable<HypermergeNodeKey[]> {
+    return new Promise(resolve => {
+      const roots =
+        vscode.workspace
+          .getConfiguration("hypermergefs")
+          .get<string[]>("roots") || [];
+      resolve(roots);
+    });
+  }
+
+  private extractChildren(document: any): Map<string, HypermergeNodeKey> {
+    const children = new Map();
+    if (document.children) {
+      // hardcoded "children" field for now, should traverse the doc
+      // extracting child links
+      document.children.forEach(([name, uri]) => children.set(name, uri));
+    }
+    return children;
+  }
+
+  private getDocumentChildren(
+    node: HypermergeNodeKey
+  ): Thenable<HypermergeNodeKey[]> {
+    return new Promise(resolve => {
+      const parentDoc = this.hypermerge.openDocumentUri(vscode.Uri.parse(node));
+      const childNodes = this.extractChildren(parentDoc);
+      resolve(Array.from(childNodes.values()));
+    });
+  }
+
   public getChildren(
     element?: HypermergeNodeKey
   ): HypermergeNodeKey[] | Thenable<HypermergeNodeKey[]> {
-    return element ? this.model.getChildren(element) : this.model.roots;
+    return element ? this.getDocumentChildren(element) : this.roots();
   }
 
   public getParent(element: HypermergeNodeKey): HypermergeNodeKey | null {
@@ -127,8 +108,7 @@ export class HypermergeExplorer {
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper
   ) {
-    const hypermergeModel = new HypermergeModel(hypermergeWrapper);
-    const treeDataProvider = new HypermergeTreeDataProvider(hypermergeModel);
+    const treeDataProvider = new HypermergeTreeDataProvider(hypermergeWrapper);
 
     this.hypermergeViewer = vscode.window.createTreeView("hypermergeExplorer", {
       treeDataProvider
@@ -152,7 +132,7 @@ export class HypermergeExplorer {
         validateInput: this.validateURL
       });
       if (uriString) {
-        hypermergeModel.addRoot(uriString);
+        treeDataProvider.addRoot(uriString);
         treeDataProvider.refresh();
       }
     });
