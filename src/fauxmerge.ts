@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import { Hypermerge } from "hypermerge";
 const { keyPair } = require("hypercore/lib/crypto");
 const raf = require("random-access-file");
-// import DiscoveryCloud from "./discovery-cloud/client";
+import DiscoveryCloud from "./discovery-cloud/client";
 
 export class HypermergeWrapper {
   database = {
@@ -24,12 +24,12 @@ export class HypermergeWrapper {
   hypermerge = new Hypermerge({ storage: raf });
 
   constructor() {
-    /* const stream = this.hypermerge.stream;
+    const stream = this.hypermerge.stream;
     const id = Buffer.from("vscode-extension");
     const url = "wss://discovery-cloud.herokuapp.com";
 
     const hyperswarmwrapper = new DiscoveryCloud({ stream, id, url });
-    this.hypermerge.joinSwarm(hyperswarmwrapper); */
+    this.hypermerge.joinSwarm(hyperswarmwrapper);
   }
 
   openDocument(docId: string) {
