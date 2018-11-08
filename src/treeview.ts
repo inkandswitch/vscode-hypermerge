@@ -12,8 +12,9 @@ export class HypermergeTreeDataProvider
     HypermergeNodeKey | undefined
   > = this._onDidChangeTreeData.event;
 
-  constructor(private readonly hypermerge: HypermergeWrapper) {
-    this.hypermerge.addListener("update", uri => {
+  constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
+    this.hypermergeWrapper = hypermergeWrapper;
+    this.hypermergeWrapper.addListener("update", uri => {
       this._onDidChangeTreeData.fire(uri.toString());
     });
   }
@@ -75,7 +76,9 @@ export class HypermergeTreeDataProvider
     node: HypermergeNodeKey
   ): Thenable<HypermergeNodeKey[]> {
     return new Promise(resolve => {
-      const parentDoc = this.hypermerge.openDocumentUri(vscode.Uri.parse(node));
+      const parentDoc = this.hypermergeWrapper.openDocumentUri(
+        vscode.Uri.parse(node)
+      );
       const childNodes = this.extractChildren(parentDoc);
       resolve(Array.from(childNodes.values()));
     });
@@ -101,7 +104,6 @@ export class HypermergeExplorer {
   // better error reporting on invalid json
   // actually diff the files on save instead of replacing them
   // handle missing files in the tree view
-
   private hypermergeViewer: vscode.TreeView<HypermergeNodeKey>;
 
   constructor(
