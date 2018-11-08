@@ -1,80 +1,94 @@
 {
-	"name": "vscode-hypermergefs",
-	"displayName": "HypermergeFS",
-	"description": "Browse and edit a Hypermerge document tree.",
-	"version": "0.0.1",
-	"publisher": "inkandswitch",
-	"repository": {
-		"url": "https://github.com/inkandswitch/hypermergefs.git",
-		"type": "git"
-	},
-	"engines": {
-		"vscode": "^1.23.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onFileSystem:hypermergefs",
-		"onView:hypermergeExplorer"
-	],
-	"main": "./out/src/extension",
-	"contributes": {
-		"configuration": {
-			"title": "HypermergeFS",
-			"properties": {
-				"hypermergefs.roots": {
-					"type": "array",
-					"default": [
-						"hypermergefs:/root"
-					],
-					"description": "A list of hypermergefs URLs to use as roots in the browser."
-				}
-			}
-		},
-		"commands": [
-			{
-				"command": "hypermergeExplorer.register",
-				"title": "Add new Root"
-			},
-			{
-				"command": "hypermergeExplorer.open",
-				"title": "Open document"
-			}
-		],
-		"menus": {
-			"commandPalette": [
-				{
-					"command": "hypermergeExplorer.register",
-					"when": "workbenchState == workspace"
-				}
-			],
-			"view/title": [
-				{
-					"command": "hypermergeExplorer.register",
-					"when": "view == hypermergeExplorer"
-				}
-			]
-		},
-		"views": {
-			"explorer": [
-				{
-					"id": "hypermergeExplorer",
-					"name": "HypermergeFS",
-					"when": "workbenchState == workspace"
-				}
-			]
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install"
-	},
-	"devDependencies": {
-		"typescript": "^2.5.2",
-		"vscode": "^1.1.17",
-		"@types/node": "^7.0.43"
-	}
+  "name": "vscode-hypermergefs",
+  "displayName": "HypermergeFS",
+  "description": "Browse and edit a Hypermerge document tree.",
+  "version": "0.0.1",
+  "publisher": "inkandswitch",
+  "repository": {
+    "url": "https://github.com/inkandswitch/hypermergefs.git",
+    "type": "git"
+  },
+  "engines": {
+    "vscode": "^1.23.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onFileSystem:hypermergefs",
+    "onView:hypermergeExplorer"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "configuration": {
+      "title": "HypermergeFS",
+      "properties": {
+        "hypermergefs.roots": {
+          "type": "array",
+          "default": [
+            "hypermergefs:/root"
+          ],
+          "description": "A list of hypermergefs URLs to use as roots in the browser."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "hypermergeExplorer.register",
+        "title": "Add new Root"
+      },
+      {
+        "command": "hypermergeExplorer.open",
+        "title": "Open document"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "hypermergeExplorer.register",
+          "when": "workbenchState == workspace"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "hypermergeExplorer.register",
+          "when": "view == hypermergeExplorer"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "hypermergeExplorer",
+          "name": "HypermergeFS",
+          "when": "workbenchState == workspace"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "rebuild": "electron-rebuild --version 3.0.1 -f -w utp-native"
+  },
+  "devDependencies": {
+    "typescript": "^3.1.4",
+    "vscode": "^1.1.21",
+    "@types/node": "^10.2.0",
+    "@types/ws": "^6.0.1",
+    "electron-rebuild": "^1.8.2"
+  },
+  "dependencies": {
+    "@hyperswarm/network": "0.0.4",
+    "automerge": "^0.9.1",
+    "hypermerge": "git+https://github.com/automerge/hypermerge.git#picomerge",
+    "pump": "^3.0.0",
+    "random-access-file": "^2.0.1",
+    "random-access-memory": "^3.0.0",
+    "utp-native": "^2.1.0",
+    "bs58": "^4.0.1",
+    "ws": "^6.1.0"
+  }
 }

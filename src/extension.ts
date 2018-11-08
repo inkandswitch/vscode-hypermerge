@@ -1,15 +1,20 @@
-'use strict';
-import * as vscode from 'vscode';
-import { HypermergeFS } from './fileSystemProvider';
-import { HypermergeExplorer } from './treeview';
+"use strict";
+import * as vscode from "vscode";
+import { HypermergeFS } from "./fileSystemProvider";
+import { HypermergeExplorer } from "./treeview";
+import { HypermergeWrapper } from "./fauxmerge";
 
 export function activate(context: vscode.ExtensionContext) {
+  console.log("HypermergeFS activated");
+  const hypermergeWrapper = new HypermergeWrapper();
 
-    console.log('HypermergeFS says "Hello"')
+  const hypermergeFs = new HypermergeFS(hypermergeWrapper);
+  context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider("hypermergefs", hypermergeFs, {
+      isCaseSensitive: true
+    })
+  );
 
-    const hypermergeFs = new HypermergeFS();
-    context.subscriptions.push(vscode.workspace.registerFileSystemProvider('hypermergefs', hypermergeFs, { isCaseSensitive: true }));
-
-    // self-registers
-    new HypermergeExplorer(context)
+  // self-registers
+  new HypermergeExplorer(context, hypermergeWrapper);
 }
