@@ -34,12 +34,15 @@ export class HypermergeFS implements vscode.FileSystemProvider {
 
   // --- manage file contents
 
-  readFile(uri: vscode.Uri): Uint8Array {
-    const document = this.hypermerge.openDocumentUri(uri);
+  readFile(uri: vscode.Uri): Thenable<Uint8Array> {
+    return this.hypermerge.openDocumentUri(uri).then(document => {
+      return Buffer.from(JSON.stringify(document, undefined, 2));
+    });
+    /* fixme: timeout, bad uri?
     if (!document) {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
-    return Buffer.from(JSON.stringify(document, undefined, 2));
+    */
   }
 
   writeFile(
