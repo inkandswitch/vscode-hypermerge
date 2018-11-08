@@ -48,7 +48,6 @@ export class HypermergeWrapper extends EventEmitter {
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {
     return new Promise((resolve, reject) => {
-      console.log("open");
       const { docId, keyPath } = interpretHypermergeUri(uri);
 
       let docFrontend = this.docHandles.get(docId);
@@ -90,7 +89,11 @@ export class HypermergeWrapper extends EventEmitter {
         // special case to assign leaf values :(
         // this needs more consideration
         if (!(content[key] instanceof Object) && keyPath.length === 0) {
-          content[key] = newDoc;
+          if (typeof content[key] === "string") {
+            content[key] = newDoc;
+          } else {
+            content[key] = newDoc;
+          }
           return;
         }
         content = content[key];

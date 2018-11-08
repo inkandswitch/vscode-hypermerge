@@ -17,7 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidOpenTextDocument(document => {
     if (document.uri.scheme === "hypermergefs") {
-      (vscode.languages as any).setTextDocumentLanguage(document, "json");
+      if (JSON.parse(document.getText())) {
+        (vscode.languages as any).setTextDocumentLanguage(document, "json");
+      }
     }
   });
 

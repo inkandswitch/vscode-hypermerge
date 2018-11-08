@@ -82,7 +82,7 @@ export class HypermergeTreeDataProvider
         return [];
       }
       const children = Object.keys(content);
-      const childNodes = children.map(child => node + "/" + child);
+      const childNodes = children.map(child => node + child + "/");
       return childNodes;
     });
   }
