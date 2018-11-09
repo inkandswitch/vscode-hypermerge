@@ -34,7 +34,6 @@ export function interpretHypermergeUri(
   if (uri.scheme === "capstone") {
     const pathElements = uri.path.split("/");
     const docId = pathElements[1];
-    console.log("capstone:" + docId);
     return { docId, keyPath: [] };
   }
 
