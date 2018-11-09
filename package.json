@@ -25,9 +25,7 @@
       "properties": {
         "hypermergefs.roots": {
           "type": "array",
-          "default": [
-            "hypermergefs:/root"
-          ],
+          "default": [],
           "description": "A list of hypermergefs URLs to use as roots in the browser."
         }
       }

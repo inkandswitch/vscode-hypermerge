@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
+import { URL } from "url";
 
 export type HypermergeNodeKey = string;
 
@@ -27,12 +28,17 @@ export class HypermergeTreeDataProvider
   public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
     // XXX: we should be building a cache of results & maintaining it over time here
     const resourceUri = vscode.Uri.parse(element);
-    const { docId, keyPath } = interpretHypermergeUri(resourceUri);
-    let label;
-    if (keyPath.length) {
-      label = keyPath.pop();
-    } else {
-      label = docId;
+    const details = interpretHypermergeUri(resourceUri);
+    if (!details) {
+      return { label: "BAD URL" };
+    }
+    let { docId, keyPath, label } = details;
+    if (!label) {
+      if (keyPath.length) {
+        label = keyPath.pop();
+      } else {
+        label = docId;
+      }
     }
 
     // ideally we should determine if the node has / can have children
@@ -82,7 +88,17 @@ export class HypermergeTreeDataProvider
         return [];
       }
       const children = Object.keys(content);
-      const childNodes = children.map(child => node + child + "/");
+      const childNodes = children.map(child => {
+        if (typeof content[child] === "string") {
+          const { docId = null, keyPath = [] } =
+            interpretHypermergeUri(vscode.Uri.parse(content[child])) || {};
+          if (docId) {
+            return "hypermergefs://" + docId + "/?label=" + child + "-" + docId;
+          }
+        }
+        // this builds a new child URL and ditches the label if it exists.
+        return new URL(child + "/", node).toString();
+      });
       return childNodes;
     });
   }
@@ -157,7 +173,7 @@ export class HypermergeExplorer {
     if (url.scheme !== "hypermergefs") {
       return "invalid scheme -- must be a hypermergefs URL";
     }
-    if (url.authority != "") {
+    if (url.authority === "") {
       return "invalid format";
     }
     return ""; // we can return a hint string if it's invalid

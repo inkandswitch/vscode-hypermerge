@@ -6,19 +6,39 @@ const raf = require("random-access-file");
 import DiscoveryCloud from "./discovery-cloud/client";
 import { EventEmitter } from "events";
 import { DeepDiff } from "deep-diff";
+import { stringify } from "querystring";
 
 interface HypermergeNodeDetails {
   docId: string;
   keyPath: string[];
+  label?: string;
 }
 
-export function interpretHypermergeUri(uri: vscode.Uri): HypermergeNodeDetails {
-  const docId = uri.authority;
-  const keyPath = uri.path
-    .split("/")
-    .slice(1)
-    .filter(Boolean);
-  return { docId, keyPath };
+export function interpretHypermergeUri(
+  uri: vscode.Uri
+): HypermergeNodeDetails | null {
+  if (uri.scheme === "hypermergefs") {
+    const docId = uri.authority;
+    const keyPath = uri.path
+      .split("/")
+      .slice(1)
+      .filter(Boolean);
+
+    const input = uri.query.split("&").map(pair => {
+      const halves = pair.split("=");
+      return [halves[0], halves[1]] as [string, string];
+    });
+    const label = new Map<string, string>(input).get("label");
+    return { docId, keyPath, label };
+  }
+  if (uri.scheme === "capstone") {
+    const pathElements = uri.path.split("/");
+    const docId = pathElements[1];
+    console.log("capstone:" + docId);
+    return { docId, keyPath: [] };
+  }
+
+  return null;
 }
 
 export class HypermergeWrapper extends EventEmitter {
@@ -50,7 +70,7 @@ export class HypermergeWrapper extends EventEmitter {
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {
     return new Promise((resolve, reject) => {
-      const { docId, keyPath } = interpretHypermergeUri(uri);
+      const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
 
       let docFrontend = this.docHandles.get(docId);
       if (!docFrontend) {
@@ -76,7 +96,7 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
-    const { docId, keyPath } = interpretHypermergeUri(uri);
+    const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
 
     let docFrontend = this.docHandles.get(docId);
     if (!docFrontend) {
