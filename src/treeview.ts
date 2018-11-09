@@ -91,7 +91,7 @@ export class HypermergeTreeDataProvider
       const childNodes = children.map(child => {
         if (typeof content[child] === "string") {
           const { docId = null, keyPath = [] } =
-            interpretHypermergeUri(vscode.Uri.parse(content[child])) || {};
+            this.attemptToInterpretUrl(content[child]);
           if (docId) {
             return "hypermergefs://" + docId + "/?label=" + child + "-" + docId;
           }
@@ -101,6 +101,16 @@ export class HypermergeTreeDataProvider
       });
       return childNodes;
     });
+  }
+
+  attemptToInterpretUrl(str: string): {docId?: string; keyPath?: string[]} {
+    if (str.length > 2000 || str.includes("\n")) return {}
+
+    try {
+      return interpretHypermergeUri(vscode.Uri.parse(str)) || {}
+    } catch (e) {
+      return {}
+    }
   }
 
   public getChildren(
