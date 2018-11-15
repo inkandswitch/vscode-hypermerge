@@ -25,34 +25,48 @@ export class HypermergeTreeDataProvider
     this._onDidChangeTreeData.fire();
   }
 
-  public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
+  public getTreeItem(element: HypermergeNodeKey): Thenable<vscode.TreeItem> {
     // XXX: we should be building a cache of results & maintaining it over time here
     const resourceUri = vscode.Uri.parse(element);
+
     const details = interpretHypermergeUri(resourceUri);
     if (!details) {
-      return { label: "BAD URL" };
-    }
-    let { docId, keyPath, label } = details;
-    if (!label) {
-      if (keyPath.length) {
-        label = keyPath.pop();
-      } else {
-        label = docId;
-      }
+      return Promise.resolve({ label: "BAD URL" });
     }
 
-    // ideally we should determine if the node has / can have children
-    const collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-    return {
-      label,
-      resourceUri,
-      collapsibleState,
-      command: {
-        command: "vscode.open",
-        arguments: [resourceUri],
-        title: "Open Hypermerge Document"
-      }
-    };
+    return this.hypermergeWrapper
+      .openDocumentUri(resourceUri)
+      .then((content: any) => {
+        let { docId, keyPath, label } = details;
+        if (!label) {
+          if (keyPath.length) {
+            label = keyPath.pop();
+          } else if (content.title) {
+            label = `${content.title} (${docId.slice(0, 3)}...${docId.slice(
+              -3
+            )})`;
+          } else if (content.name) {
+            label = `${content.name} (${docId.slice(0, 3)}...${docId.slice(
+              -3
+            )})`;
+          } else {
+            label = docId;
+          }
+        }
+
+        // ideally we should determine if the node has / can have children
+        const collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        return {
+          label,
+          resourceUri,
+          collapsibleState,
+          command: {
+            command: "vscode.open",
+            arguments: [resourceUri],
+            title: "Open Hypermerge Document"
+          }
+        };
+      });
   }
 
   public addRoot(uriString: string) {
@@ -90,8 +104,9 @@ export class HypermergeTreeDataProvider
       const children = Object.keys(content);
       const childNodes = children.map(child => {
         if (typeof content[child] === "string") {
-          const { docId = null, keyPath = [] } =
-            this.attemptToInterpretUrl(content[child]);
+          const { docId = null, keyPath = [] } = this.attemptToInterpretUrl(
+            content[child]
+          );
           if (docId) {
             return "hypermergefs://" + docId + "/?label=" + child + "-" + docId;
           }
@@ -103,13 +118,13 @@ export class HypermergeTreeDataProvider
     });
   }
 
-  attemptToInterpretUrl(str: string): {docId?: string; keyPath?: string[]} {
-    if (str.length > 2000 || str.includes("\n")) return {}
+  attemptToInterpretUrl(str: string): { docId?: string; keyPath?: string[] } {
+    if (str.length > 2000 || str.includes("\n")) return {};
 
     try {
-      return interpretHypermergeUri(vscode.Uri.parse(str)) || {}
+      return interpretHypermergeUri(vscode.Uri.parse(str)) || {};
     } catch (e) {
-      return {}
+      return {};
     }
   }
 

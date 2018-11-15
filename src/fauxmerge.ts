@@ -1,12 +1,10 @@
 import * as vscode from "vscode";
 
 import { Hypermerge, FrontendManager } from "hypermerge";
-const { keyPair } = require("hypercore/lib/crypto");
 const raf = require("random-access-file");
 import DiscoveryCloud from "./discovery-cloud/client";
 import { EventEmitter } from "events";
 import { DeepDiff } from "deep-diff";
-import { stringify } from "querystring";
 
 interface HypermergeNodeDetails {
   docId: string;
