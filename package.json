@@ -68,18 +68,18 @@
     "rebuild": "electron-rebuild --version 3.0.1 -f -w utp-native"
   },
   "devDependencies": {
-    "typescript": "^3.1.4",
-    "vscode": "^1.1.21",
     "@types/node": "^10.2.0",
-    "@types/ws": "^6.0.1",
-    "electron-rebuild": "^1.8.2"
+    "electron-rebuild": "^1.8.2",
+    "typescript": "^3.1.4",
+    "vscode": "^1.1.21"
   },
   "dependencies": {
     "@hyperswarm/network": "0.0.4",
     "automerge": "^0.9.1",
     "bs58": "^4.0.1",
     "deep-diff": "^1.0.2",
-    "hypermerge": "git+https://github.com/automerge/hypermerge.git#picomerge",
+    "discovery-cloud-client": "https://github.com/orionz/discovery-cloud-client",
+    "hypermerge": "git+https://github.com/automerge/hypermerge.git",
     "pump": "^3.0.0",
     "random-access-file": "^2.0.1",
     "random-access-memory": "^3.0.0",

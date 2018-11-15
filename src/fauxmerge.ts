@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 
-import { Hypermerge, FrontendManager } from "hypermerge";
+import { Repo } from "hypermerge";
 const raf = require("random-access-file");
-import DiscoveryCloud from "./discovery-cloud/client";
+import DiscoveryCloud from "discovery-cloud-client";
 import { EventEmitter } from "events";
 import { DeepDiff } from "deep-diff";
 
@@ -39,22 +39,18 @@ export function interpretHypermergeUri(
 }
 
 export class HypermergeWrapper extends EventEmitter {
-  hypermerge = new Hypermerge({ storage: raf });
+  repo = new Repo({ storage: raf });
+  openIds = new Set<string>();
 
   constructor() {
     super();
 
-    const stream = this.hypermerge.stream;
-    const id = Buffer.from(
-      "vscode-extension-" + Math.round(Math.random() * 1000)
-    );
+    const stream = this.repo.stream;
+    const id = this.repo.id
     const url = "wss://discovery-cloud.herokuapp.com";
-
     const hyperswarmwrapper = new DiscoveryCloud({ stream, id, url });
-    this.hypermerge.joinSwarm(hyperswarmwrapper);
+    this.repo.replicate(hyperswarmwrapper);
   }
-
-  docHandles = new Map<string, FrontendManager<any>>();
 
   resolveSubDocument(doc: any, keyPath): any {
     let content = doc;
@@ -69,23 +65,14 @@ export class HypermergeWrapper extends EventEmitter {
     return new Promise((resolve, reject) => {
       const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
 
-      let docFrontend = this.docHandles.get(docId);
-      if (!docFrontend) {
-        docFrontend = this.hypermerge.openDocumentFrontend(docId);
-        this.docHandles.set(docId, docFrontend);
-        docFrontend.on("doc", (doc: any) => {
+      if (!this.openIds.has(docId)) {
+        this.openIds.add(docId);
+        this.repo.open(docId).subscribe((doc: any) => {
           this.emit("update", uri);
         });
       }
 
-      /*
-      let timeOut = setTimeout(() => {
-        reject(null);
-      }, 5000);
-      */
-
-      docFrontend.handle().once((doc: any) => {
-        //clearTimeout(timeOut);
+      this.repo.open(docId).once((doc: any) => {
         let subDoc = this.resolveSubDocument(doc, keyPath);
         resolve(subDoc);
       });
@@ -95,13 +82,8 @@ export class HypermergeWrapper extends EventEmitter {
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
     const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
 
-    let docFrontend = this.docHandles.get(docId);
-    if (!docFrontend) {
-      docFrontend = this.hypermerge.openDocumentFrontend(docId);
-      this.docHandles.set(docId, docFrontend);
-    }
-
-    docFrontend.change(doc => {
+    const handle = this.repo.open(docId);
+    handle.change(doc => {
       let content = doc;
       let key;
       while ((key = keyPath.shift())) {
@@ -120,5 +102,6 @@ export class HypermergeWrapper extends EventEmitter {
 
       DeepDiff.applyDiff(content, newDoc);
     });
+    handle.close()
   }
 }
