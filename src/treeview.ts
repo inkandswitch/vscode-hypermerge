@@ -4,6 +4,10 @@ import { URL } from "url";
 
 export type HypermergeNodeKey = string;
 
+function vscodeURItoCaseSensitiveString(uri: vscode.Uri): string {
+  return `hypermergefs://${uri.authority}/`;
+}
+
 export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -17,7 +21,7 @@ export class HypermergeTreeDataProvider
     this.hypermergeWrapper = hypermergeWrapper;
     this.hypermergeWrapper.addListener("update", uri => {
       // XXX FIXME this broke
-      this._onDidChangeTreeData.fire(uri.toString());
+      this._onDidChangeTreeData.fire(vscodeURItoCaseSensitiveString(uri));
     });
   }
 
@@ -216,7 +220,7 @@ export class HypermergeExplorer {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       if (editor.document.uri.scheme === "hypermergefs") {
-        return editor.document.uri.toString();
+        return vscodeURItoCaseSensitiveString(editor.document.uri);
       }
     }
     return null;
