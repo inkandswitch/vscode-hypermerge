@@ -15,7 +15,7 @@ interface HypermergeNodeDetails {
 export function interpretHypermergeUri(
   uri: vscode.Uri
 ): HypermergeNodeDetails | null {
-  if (uri.scheme === "hypermergefs") {
+  if (uri.scheme === "hypermerge") {
     const docId = uri.authority;
     const keyPath = uri.path
       .split("/")
@@ -46,7 +46,7 @@ export class HypermergeWrapper extends EventEmitter {
     super();
 
     const stream = this.repo.stream;
-    const id = this.repo.id
+    const id = this.repo.id;
     const url = "wss://discovery-cloud.herokuapp.com";
     const hyperswarmwrapper = new DiscoveryCloud({ stream, id, url });
     this.repo.replicate(hyperswarmwrapper);
@@ -102,6 +102,6 @@ export class HypermergeWrapper extends EventEmitter {
 
       DeepDiff.applyDiff(content, newDoc);
     });
-    handle.close()
+    handle.close();
   }
 }

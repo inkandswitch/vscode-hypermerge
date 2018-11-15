@@ -112,7 +112,7 @@ export class HypermergeTreeDataProvider
             content[child]
           );
           if (docId) {
-            return "hypermergefs://" + docId + "/?label=" + child + "-" + docId;
+            return "hypermerge://" + docId + "/?label=" + child + "-" + docId;
           }
         }
         // this builds a new child URL and ditches the label if it exists.
@@ -199,8 +199,8 @@ export class HypermergeExplorer {
     } catch {
       return "invalid URL";
     }
-    if (url.scheme !== "hypermergefs") {
-      return "invalid scheme -- must be a hypermergefs URL";
+    if (url.scheme !== "hypermerge") {
+      return "invalid scheme -- must be a hypermerge:// URL";
     }
     if (url.authority === "") {
       return "invalid format";
@@ -219,7 +219,7 @@ export class HypermergeExplorer {
   private getNode(): HypermergeNodeKey | null {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-      if (editor.document.uri.scheme === "hypermergefs") {
+      if (editor.document.uri.scheme === "hypermerge") {
         return vscodeURItoCaseSensitiveString(editor.document.uri);
       }
     }

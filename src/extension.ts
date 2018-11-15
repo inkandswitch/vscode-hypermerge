@@ -10,13 +10,13 @@ export function activate(context: vscode.ExtensionContext) {
 
   const hypermergeFs = new HypermergeFS(hypermergeWrapper);
   context.subscriptions.push(
-    vscode.workspace.registerFileSystemProvider("hypermergefs", hypermergeFs, {
+    vscode.workspace.registerFileSystemProvider("hypermerge", hypermergeFs, {
       isCaseSensitive: true
     })
   );
 
   vscode.workspace.onDidOpenTextDocument(document => {
-    if (document.uri.scheme === "hypermergefs") {
+    if (document.uri.scheme === "hypermerge") {
       if (JSON.parse(document.getText())) {
         (vscode.languages as any).setTextDocumentLanguage(document, "json");
       }
