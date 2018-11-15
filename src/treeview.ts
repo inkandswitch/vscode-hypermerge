@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
 import { URL } from "url";
+const clipboardy = require("clipboardy");
 
 export type HypermergeNodeKey = string;
 
@@ -35,7 +36,7 @@ export class HypermergeTreeDataProvider
 
     const details = interpretHypermergeUri(resourceUri);
     if (!details) {
-      return Promise.resolve({ label: "BAD URL" });
+      return Promise.resolve({ label: "<BAD URL>" });
     }
 
     return this.hypermergeWrapper
@@ -213,6 +214,14 @@ export class HypermergeExplorer {
       "hypermergeExplorer.remove",
       async resourceUri => {
         treeDataProvider.removeRoot(resourceUri);
+      }
+    );
+
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.copyUrl",
+      async resourceUrl => {
+        const url = vscode.Uri.parse(resourceUrl);
+        clipboardy.writeSync(vscodeURItoCaseSensitiveString(url));
       }
     );
 
