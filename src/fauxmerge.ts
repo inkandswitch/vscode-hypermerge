@@ -79,6 +79,16 @@ export class HypermergeWrapper extends EventEmitter {
     });
   }
 
+  createDocumentUri(): vscode.Uri {
+    const docId = this.repo.create();
+    // FIXME: orion, we can't open newly created docs before their first change
+    this.repo.open(docId).change(doc => {
+      doc.title = "New Document";
+    });
+
+    return vscode.Uri.parse("hypermerge://" + docId);
+  }
+
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
     const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
 

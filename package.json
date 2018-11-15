@@ -33,7 +33,15 @@
     "commands": [
       {
         "command": "hypermergeExplorer.register",
-        "title": "Add new Root"
+        "title": "Open document"
+      },
+      {
+        "command": "hypermergeExplorer.create",
+        "title": "Create document"
+      },
+      {
+        "command": "hypermergeExplorer.remove",
+        "title": "Remove document"
       }
     ],
     "menus": {
@@ -46,6 +54,16 @@
       "view/title": [
         {
           "command": "hypermergeExplorer.register",
+          "when": "view == hypermergeExplorer"
+        },
+        {
+          "command": "hypermergeExplorer.create",
+          "when": "view == hypermergeExplorer"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "hypermergeExplorer.remove",
           "when": "view == hypermergeExplorer"
         }
       ]

@@ -5,7 +5,7 @@ import { URL } from "url";
 export type HypermergeNodeKey = string;
 
 function vscodeURItoCaseSensitiveString(uri: vscode.Uri): string {
-  return `hypermergefs://${uri.authority}/`;
+  return `hypermerge://${uri.authority}/`;
 }
 
 export class HypermergeTreeDataProvider
@@ -83,6 +83,20 @@ export class HypermergeTreeDataProvider
       .update(
         "roots",
         [uriString, ...roots],
+        vscode.ConfigurationTarget.Global
+      );
+  }
+
+  public removeRoot(uriString: string) {
+    const roots =
+      vscode.workspace
+        .getConfiguration("hypermergefs")
+        .get<string[]>("roots") || [];
+    vscode.workspace
+      .getConfiguration("hypermergefs")
+      .update(
+        "roots",
+        roots.filter(uri => uri !== uriString),
         vscode.ConfigurationTarget.Global
       );
   }
@@ -176,6 +190,14 @@ export class HypermergeExplorer {
       })
     );
 
+    vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
+      const uri = await hypermergeWrapper.createDocumentUri();
+      if (uri) {
+        treeDataProvider.addRoot(vscodeURItoCaseSensitiveString(uri));
+        treeDataProvider.refresh();
+      }
+    });
+
     vscode.commands.registerCommand("hypermergeExplorer.register", async () => {
       const uriString = await vscode.window.showInputBox({
         placeHolder: "Browse which hypermerge URL?",
@@ -186,6 +208,13 @@ export class HypermergeExplorer {
         treeDataProvider.refresh();
       }
     });
+
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.remove",
+      async resourceUri => {
+        treeDataProvider.removeRoot(resourceUri);
+      }
+    );
 
     vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
       this.reveal()
