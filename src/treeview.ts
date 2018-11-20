@@ -47,13 +47,7 @@ export class HypermergeTreeDataProvider
           if (keyPath.length) {
             label = keyPath.pop();
           } else if (content.title) {
-            label = `${content.title} (${docId.slice(0, 3)}...${docId.slice(
-              -3
-            )})`;
-          } else if (content.name) {
-            label = `${content.name} (${docId.slice(0, 3)}...${docId.slice(
-              -3
-            )})`;
+            label = `[${docId.slice(0, 5)}] ${content.title}`;
           } else {
             label = docId;
           }
