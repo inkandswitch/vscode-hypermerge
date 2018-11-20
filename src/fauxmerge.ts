@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 import { Repo } from "hypermerge";
 const raf = require("random-access-file");
+
 import DiscoveryCloud from "discovery-cloud-client";
 import { EventEmitter } from "events";
 import { DeepDiff } from "deep-diff";
@@ -38,8 +39,11 @@ export function interpretHypermergeUri(
   return null;
 }
 
+const path = process.env.HOME ? `${process.env.HOME}/.hypermergefs` : undefined
+const storage = raf
+
 export class HypermergeWrapper extends EventEmitter {
-  repo = new Repo({ storage: raf });
+  repo = new Repo({ path, storage });
   openIds = new Set<string>();
 
   constructor() {
