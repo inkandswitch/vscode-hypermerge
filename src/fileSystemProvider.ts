@@ -17,7 +17,7 @@ export class HypermergeFS implements vscode.FileSystemProvider {
 
   stat(uri: vscode.Uri): Thenable<vscode.FileStat> {
     return this.hypermerge.openDocumentUri(uri).then(document => {
-      if (!document) {
+      if (document === undefined) {
         throw vscode.FileSystemError.FileNotFound(uri);
       }
       return {
