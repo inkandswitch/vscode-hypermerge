@@ -9,14 +9,20 @@ function vscodeURItoCaseSensitiveString(uri: vscode.Uri): string {
   return `hypermerge://${uri.authority}/`;
 }
 
+interface RootDetails {
+  user: Set<string>
+  workspace: Set<string>
+  default: Set<string>
+}
+
 export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     HypermergeNodeKey | undefined
-  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
+    > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
   readonly onDidChangeTreeData: vscode.Event<
     HypermergeNodeKey | undefined
-  > = this._onDidChangeTreeData.event;
+    > = this._onDidChangeTreeData.event;
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
@@ -69,10 +75,13 @@ export class HypermergeTreeDataProvider
   }
 
   public addRoot(uriString: string) {
-    const roots =
+    const inspectRoots =
       vscode.workspace
         .getConfiguration("hypermergefs")
-        .get<string[]>("roots") || [];
+        .inspect<string[]>("roots");
+
+    const roots = inspectRoots && inspectRoots.globalValue || []
+
     vscode.workspace
       .getConfiguration("hypermergefs")
       .update(
@@ -83,27 +92,37 @@ export class HypermergeTreeDataProvider
   }
 
   public removeRoot(uriString: string) {
-    const roots =
-      vscode.workspace
-        .getConfiguration("hypermergefs")
-        .get<string[]>("roots") || [];
+    const roots = this.inspectRoots().user
+
+    roots.delete(uriString)
+
     vscode.workspace
       .getConfiguration("hypermergefs")
       .update(
         "roots",
-        roots.filter(uri => uri !== uriString),
+        [...roots],
         vscode.ConfigurationTarget.Global
       );
   }
 
-  private roots(): Thenable<HypermergeNodeKey[]> {
-    return new Promise(resolve => {
-      const roots =
-        vscode.workspace
-          .getConfiguration("hypermergefs")
-          .get<string[]>("roots") || [];
-      resolve(roots);
-    });
+  private roots(): Set<HypermergeNodeKey> {
+    const details = this.inspectRoots()
+
+    return new Set([...details.user, ...details.workspace, ...details.default]);
+  }
+
+  private inspectRoots(): RootDetails {
+    const insp =
+      vscode.workspace
+        .getConfiguration("hypermergefs")
+        .inspect<string[]>("roots") || <any>{};
+
+
+    return {
+      user: new Set(insp.globalValue),
+      workspace: new Set(insp.workspaceValue),
+      default: new Set(insp.defaultValue)
+    }
   }
 
   private getDocumentChildren(
@@ -144,7 +163,7 @@ export class HypermergeTreeDataProvider
   public getChildren(
     element?: HypermergeNodeKey
   ): HypermergeNodeKey[] | Thenable<HypermergeNodeKey[]> {
-    return element ? this.getDocumentChildren(element) : this.roots();
+    return element ? this.getDocumentChildren(element) : [...this.roots()];
   }
 
   public getParent(element: HypermergeNodeKey): HypermergeNodeKey | null {
