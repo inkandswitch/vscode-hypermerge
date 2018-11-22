@@ -51,8 +51,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "hypermergeExplorer.register",
-          "when": "workbenchState == workspace"
+          "command": "hypermergeExplorer.register"
         }
       ],
       "view/title": [
@@ -80,8 +79,7 @@
       "explorer": [
         {
           "id": "hypermergeExplorer",
-          "name": "HypermergeFS",
-          "when": "workbenchState == workspace"
+          "name": "HypermergeFS"
         }
       ]
     }
