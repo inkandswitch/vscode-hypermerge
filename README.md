@@ -1,17 +1,7 @@
-# MemFS
+# HypermergeFS
 
-This extension implements an in-memory file system to show-case the [filesytem provider api](https://github.com/Microsoft/vscode/blob/51a880315fd0ec2cafb511a17de48ec31802ba6d/src/vs/vscode.d.ts#L4968). It serves two purposes:
+Browse & edit Hypermerge documents. This VSCode extension was built to work with REaLM but should be mostly compatible with Capstone, PushPin, and other Hypermerge projects (though support is subject to the vagaries of research software version drift.)
 
-* Be a sample/reference for extension authors that want to implement a filesystem provider
-* Be a test for other extensions that *falsely* assume text document always live on disk.
-
-
-To *get started* you need this:
-
-* install this extension
-* when *not* having a workspace opened, select 'F1 > [MemFS] Setup Workspace' (optionally save the workspace now)
-* select 'F1 > [MemFs] Create Files' and notice how the explorer is now populated
-* ... try things out, e.g. IntelliSense in memfs-files, create new files, save them, etc
-* select 'F1 > [MemFs] Delete Files' or reload to restart
-
-![sample screenshot](https://github.com/Microsoft/vscode-extension-samples/raw/master/fsprovider-sample/sample.png)
+* Check out this repo and open it with that Electron (Exploration build)
+* Install a special Electron 3 build: https://github.com/Microsoft/vscode/issues/52629
+* Run `npm install` to install module dependencies. (Not `yarn`! Fixes welcome.)
