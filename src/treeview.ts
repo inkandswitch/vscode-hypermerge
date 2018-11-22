@@ -48,19 +48,22 @@ export class HypermergeTreeDataProvider
     return this.hypermergeWrapper
       .openDocumentUri(resourceUri)
       .then((content: any) => {
-        let { docId, keyPath, label } = details;
-        if (!label) {
-          if (keyPath.length) {
-            label = keyPath.pop();
-          } else if (content.title) {
-            label = `[${docId.slice(0, 5)}] ${content.title}`;
-          } else {
-            label = docId;
-          }
+        let { docId, keyPath } = details;
+
+        let label;
+        if (keyPath.length) {
+          label = keyPath.pop();
+        } else if (content.title) {
+          label = `[${docId.slice(0, 5)}] ${content.title}`;
+        } else {
+          label = docId;
         }
 
         // ideally we should determine if the node has / can have children
-        const collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        const collapsibleState =
+          content instanceof Array || content instanceof Object
+            ? vscode.TreeItemCollapsibleState.Collapsed
+            : vscode.TreeItemCollapsibleState.None;
         return {
           label,
           resourceUri,
@@ -140,7 +143,7 @@ export class HypermergeTreeDataProvider
             content[child]
           );
           if (docId) {
-            return "hypermerge://" + docId + "/?label=" + child + "-" + docId;
+            return "hypermerge://" + docId + "/";
           }
         }
         // this builds a new child URL and ditches the label if it exists.
