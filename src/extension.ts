@@ -2,6 +2,7 @@
 import * as vscode from "vscode";
 import { HypermergeFS } from "./fileSystemProvider";
 import { HypermergeExplorer } from "./treeview";
+import { HypermergeViewContainer } from "./details";
 import { HypermergeWrapper } from "./fauxmerge";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -25,4 +26,5 @@ export function activate(context: vscode.ExtensionContext) {
 
   // self-registers
   new HypermergeExplorer(context, hypermergeWrapper);
+  new HypermergeViewContainer(context, hypermergeWrapper);
 }

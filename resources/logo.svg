@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+<style>
+</style>
+  <path class="st2" d="M14 10h-2.065L9.268 6H11l1-1V2l-1-1H5L4 2v3l1 1h1.733l-2.667 4H2l-1 1v3l1 1h4l1-1v-3l-1-1h-.732l2.667-4h.131l2.667 4H10l-1 1v3l1 1h4l1-1v-3l-1-1zm-8 1v3H2v-3h4zM5 5V2h6v3H5zm9 9h-4v-3h4v3z" id="icon_x5F_bg"/>
+  <path class="st3" d="M14 11v3h-4v-3h4zM2 14h4v-3H2v3zm9-12H5v3h6V2z" id="icon_x5F_fg"/>
+</svg>

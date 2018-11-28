@@ -33,11 +33,19 @@
     "commands": [
       {
         "command": "hypermergeExplorer.register",
-        "title": "Open document"
+        "title": "Open document",
+        "icon": {
+          "dark": "resources/open.svg",
+          "light": "resources/open.svg"
+        }
       },
       {
         "command": "hypermergeExplorer.create",
-        "title": "Create document"
+        "title": "Create document",
+        "icon": {
+          "dark": "resources/create.svg",
+          "light": "resources/create.svg"
+        }
       },
       {
         "command": "hypermergeExplorer.remove",
@@ -57,11 +65,13 @@
       "view/title": [
         {
           "command": "hypermergeExplorer.register",
-          "when": "view == hypermergeExplorer"
+          "when": "view == hypermergeExplorer",
+          "group": "navigation"
         },
         {
           "command": "hypermergeExplorer.create",
-          "when": "view == hypermergeExplorer"
+          "when": "view == hypermergeExplorer",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -75,11 +85,28 @@
         }
       ]
     },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "hypermergeDetails",
+          "when": "resourceScheme == hypermerge",
+          "title": "Hypermerge",
+          "icon": "resources/logo.svg"
+        }
+      ]
+    },
     "views": {
       "explorer": [
         {
           "id": "hypermergeExplorer",
           "name": "HypermergeFS"
+        }
+      ],
+      "hypermergeDetails": [
+        {
+          "id": "hypermergeHistory",
+          "when": "resourceScheme == hypermerge",
+          "name": "History"
         }
       ]
     }
