@@ -5,30 +5,25 @@ const clipboardy = require("clipboardy");
 
 export type HypermergeNodeKey = string;
 
-function vscodeURItoCaseSensitiveString(uri: vscode.Uri): string {
-  return `hypermerge://${uri.authority}/`;
-}
-
 interface RootDetails {
-  user: Set<string>
-  workspace: Set<string>
-  default: Set<string>
+  user: Set<string>;
+  workspace: Set<string>;
+  default: Set<string>;
 }
 
 export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     HypermergeNodeKey | undefined
-    > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
+  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
   readonly onDidChangeTreeData: vscode.Event<
     HypermergeNodeKey | undefined
-    > = this._onDidChangeTreeData.event;
+  > = this._onDidChangeTreeData.event;
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
     this.hypermergeWrapper.addListener("update", uri => {
-      // XXX FIXME this broke
-      this._onDidChangeTreeData.fire(vscodeURItoCaseSensitiveString(uri));
+      this._onDidChangeTreeData.fire(uri);
     });
   }
 
@@ -59,7 +54,6 @@ export class HypermergeTreeDataProvider
           label = docId;
         }
 
-        // ideally we should determine if the node has / can have children
         const collapsibleState =
           content instanceof Array || content instanceof Object
             ? vscode.TreeItemCollapsibleState.Collapsed
@@ -78,12 +72,11 @@ export class HypermergeTreeDataProvider
   }
 
   public addRoot(uriString: string) {
-    const inspectRoots =
-      vscode.workspace
-        .getConfiguration("hypermergefs")
-        .inspect<string[]>("roots");
+    const inspectRoots = vscode.workspace
+      .getConfiguration("hypermergefs")
+      .inspect<string[]>("roots");
 
-    const roots = inspectRoots && inspectRoots.globalValue || []
+    const roots = (inspectRoots && inspectRoots.globalValue) || [];
 
     vscode.workspace
       .getConfiguration("hypermergefs")
@@ -95,21 +88,17 @@ export class HypermergeTreeDataProvider
   }
 
   public removeRoot(uriString: string) {
-    const roots = this.inspectRoots().user
+    const roots = this.inspectRoots().user;
 
-    roots.delete(uriString)
+    roots.delete(uriString);
 
     vscode.workspace
       .getConfiguration("hypermergefs")
-      .update(
-        "roots",
-        [...roots],
-        vscode.ConfigurationTarget.Global
-      );
+      .update("roots", [...roots], vscode.ConfigurationTarget.Global);
   }
 
   private roots(): Set<HypermergeNodeKey> {
-    const details = this.inspectRoots()
+    const details = this.inspectRoots();
 
     return new Set([...details.user, ...details.workspace, ...details.default]);
   }
@@ -120,12 +109,11 @@ export class HypermergeTreeDataProvider
         .getConfiguration("hypermergefs")
         .inspect<string[]>("roots") || <any>{};
 
-
     return {
       user: new Set(insp.globalValue),
       workspace: new Set(insp.workspaceValue),
       default: new Set(insp.defaultValue)
-    }
+    };
   }
 
   private getDocumentChildren(
@@ -136,6 +124,7 @@ export class HypermergeTreeDataProvider
       if (!(content instanceof Object)) {
         return [];
       }
+
       const children = Object.keys(content);
       const childNodes = children.map(child => {
         if (typeof content[child] === "string") {
@@ -143,11 +132,11 @@ export class HypermergeTreeDataProvider
             content[child]
           );
           if (docId) {
-            return "hypermerge://" + docId + "/";
+            return "hypermerge:/" + docId + "";
           }
         }
         // this builds a new child URL and ditches the label if it exists.
-        return new URL(child + "/", node).toString();
+        return new URL(node + "/" + child).toString();
       });
       return childNodes;
     });
@@ -210,7 +199,7 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri();
       if (uri) {
-        treeDataProvider.addRoot(vscodeURItoCaseSensitiveString(uri));
+        treeDataProvider.addRoot(uri.toString());
         treeDataProvider.refresh();
       }
     });
@@ -237,7 +226,7 @@ export class HypermergeExplorer {
       "hypermergeExplorer.copyUrl",
       async resourceUrl => {
         const url = vscode.Uri.parse(resourceUrl);
-        clipboardy.writeSync(vscodeURItoCaseSensitiveString(url));
+        clipboardy.writeSync(url.toString());
       }
     );
 
@@ -247,16 +236,17 @@ export class HypermergeExplorer {
   }
 
   validateURL(input: string) {
-    let url;
+    let url, parts;
     try {
       url = vscode.Uri.parse(input);
+      parts = interpretHypermergeUri(url);
     } catch {
       return "invalid URL";
     }
     if (url.scheme !== "hypermerge") {
-      return "invalid scheme -- must be a hypermerge:// URL";
+      return "invalid scheme -- must be a hypermerge URL";
     }
-    if (url.authority === "") {
+    if (url.path === "") {
       return "invalid format";
     }
     return ""; // we can return a hint string if it's invalid
@@ -274,7 +264,7 @@ export class HypermergeExplorer {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       if (editor.document.uri.scheme === "hypermerge") {
-        return vscodeURItoCaseSensitiveString(editor.document.uri);
+        return editor.document.uri.toString();
       }
     }
     return null;

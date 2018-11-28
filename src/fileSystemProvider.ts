@@ -43,11 +43,6 @@ export class HypermergeFS implements vscode.FileSystemProvider {
       }
       return Buffer.from(JSON.stringify(document, undefined, 2));
     });
-    /* fixme: timeout, bad uri?
-    if (!document) {
-      throw vscode.FileSystemError.FileNotFound(uri);
-    }
-    */
   }
 
   writeFile(

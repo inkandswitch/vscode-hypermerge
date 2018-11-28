@@ -17,11 +17,7 @@ export function interpretHypermergeUri(
   uri: vscode.Uri
 ): HypermergeNodeDetails | null {
   if (uri.scheme === "hypermerge") {
-    const docId = uri.authority;
-    const keyPath = uri.path
-      .split("/")
-      .slice(1)
-      .filter(Boolean);
+    const [_, docId, ...keyPath] = uri.path.split("/");
 
     const input = uri.query.split("&").map(pair => {
       const halves = pair.split("=");
@@ -39,8 +35,8 @@ export function interpretHypermergeUri(
   return null;
 }
 
-const path = process.env.HOME ? `${process.env.HOME}/.hypermergefs` : undefined
-const storage = raf
+const path = process.env.HOME ? `${process.env.HOME}/.hypermergefs` : undefined;
+const storage = raf;
 
 export class HypermergeWrapper extends EventEmitter {
   repo = new Repo({ path, storage });
@@ -90,7 +86,7 @@ export class HypermergeWrapper extends EventEmitter {
       doc.title = "New Document";
     });
 
-    return vscode.Uri.parse("hypermerge://" + docId);
+    return vscode.Uri.parse("hypermerge:/" + docId);
   }
 
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
