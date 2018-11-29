@@ -9,14 +9,15 @@
     "type": "git"
   },
   "engines": {
-    "vscode": "^1.23.0"
+    "vscode": "^1.29.1"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onFileSystem:hypermergefs",
-    "onView:hypermergeExplorer"
+    "onFileSystem:hypermerge",
+    "onView:hypermergeExplorer",
+    "onUri"
   ],
   "main": "./out/src/extension",
   "contributes": {
@@ -138,7 +139,7 @@
     "@types/node": "^10.2.0",
     "electron-rebuild": "^1.8.2",
     "typescript": "^3.1.4",
-    "vscode": "^1.1.21"
+    "vscode": "^1.1.22"
   },
   "dependencies": {
     "@hyperswarm/network": "0.0.4",
