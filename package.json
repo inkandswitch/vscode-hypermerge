@@ -54,6 +54,14 @@
       {
         "command": "hypermergeExplorer.copyUrl",
         "title": "Copy document URL"
+      },
+      {
+        "command": "hypermergeExplorer.forkUrl",
+        "title": "Create a fork of this document"
+      },
+      {
+        "command": "hypermergeExplorer.followUrl",
+        "title": "Create a follower of this document"
       }
     ],
     "menus": {
@@ -81,6 +89,14 @@
         },
         {
           "command": "hypermergeExplorer.copyUrl",
+          "when": "view == hypermergeExplorer"
+        },
+        {
+          "command": "hypermergeExplorer.forkUrl",
+          "when": "view == hypermergeExplorer"
+        },
+        {
+          "command": "hypermergeExplorer.followUrl",
           "when": "view == hypermergeExplorer"
         }
       ]
@@ -131,7 +147,7 @@
     "clipboardy": "^1.2.3",
     "deep-diff": "github:jeffpeterson/diff",
     "discovery-cloud-client": "https://github.com/orionz/discovery-cloud-client",
-    "hypermerge": "git+https://github.com/automerge/hypermerge.git",
+    "hypermerge": "git+https://github.com/automerge/hypermerge.git#fork",
     "pump": "^3.0.0",
     "random-access-file": "^2.0.1",
     "random-access-memory": "^3.0.0",

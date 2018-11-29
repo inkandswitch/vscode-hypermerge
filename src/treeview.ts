@@ -230,6 +230,42 @@ export class HypermergeExplorer {
       }
     );
 
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.forkUrl",
+      async resourceUrl => {
+        const forkedUrl = vscode.Uri.parse(resourceUrl);
+        const newUrl = await hypermergeWrapper.forkDocumentUri(forkedUrl);
+        if (!newUrl) {
+          // probably oughta print an error
+          return;
+        }
+
+        const uriString = newUrl.toString();
+        if (uriString) {
+          treeDataProvider.addRoot(uriString);
+          treeDataProvider.refresh();
+        }
+      }
+    );
+
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.followUrl",
+      async resourceUrl => {
+        const followedUrl = vscode.Uri.parse(resourceUrl);
+        const newUrl = await hypermergeWrapper.followDocumentUri(followedUrl);
+        if (!newUrl) {
+          // probably oughta print an error
+          return;
+        }
+
+        const uriString = newUrl.toString();
+        if (uriString) {
+          treeDataProvider.addRoot(uriString);
+          treeDataProvider.refresh();
+        }
+      }
+    );
+
     vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
       this.reveal()
     );

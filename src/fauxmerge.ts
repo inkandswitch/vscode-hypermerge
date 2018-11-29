@@ -89,6 +89,28 @@ export class HypermergeWrapper extends EventEmitter {
     return vscode.Uri.parse("hypermerge:/" + docId);
   }
 
+  forkDocumentUri(forkedDoc: vscode.Uri): vscode.Uri | null {
+    const { docId = "", keyPath = [] } =
+      interpretHypermergeUri(forkedDoc) || {};
+    if (!docId) {
+      return null;
+    }
+
+    const forkId = this.repo.open(docId).fork();
+    return vscode.Uri.parse("hypermerge:/" + forkId);
+  }
+
+  followDocumentUri(followedDoc: vscode.Uri): vscode.Uri | null {
+    const { docId = "", keyPath = [] } =
+      interpretHypermergeUri(followedDoc) || {};
+    if (!docId) {
+      return null;
+    }
+
+    const followId = this.repo.open(docId).follow();
+    return vscode.Uri.parse("hypermerge:/" + followId);
+  }
+
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
     const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
 
