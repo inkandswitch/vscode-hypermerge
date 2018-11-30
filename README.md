@@ -16,3 +16,7 @@ If you want to work on, debug, or develop on the VSCode extension follow these s
  * A second, new VSCode window will open running the extension version you just built. You'll be able to put breakpoints in the code and see debug output in your original window. The new window will be labeled \[Extension Development\] so you can recognize it.
  
 You're off to the races!
+
+## Using HypermergeFS
+
+HypermergeFS can open arbitrary hypermerge files and treat them as both JSON and nested directory structures. You'll see a "HypermergeFS" panel appear in the filesystem / document browser tab. From there you can either import URLs or create new documents.
