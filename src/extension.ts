@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext) {
   console.log("HypermergeFS activated");
   const hypermergeWrapper = new HypermergeWrapper();
 
-  const output = vscode.window.createOutputChannel("Hypermerge")
+  const output = vscode.window.createOutputChannel("Hypermerge");
 
   const hypermergeFs = new HypermergeFS(hypermergeWrapper);
   context.subscriptions.push(
@@ -26,11 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
           (vscode.languages as any).setTextDocumentLanguage(document, "json");
         }
       }
-    }));
+    })
+  );
 
   context.subscriptions.push(
-    vscode.window.registerUriHandler(new HypermergeUriHandler(output))
-  )
+    (vscode.window as any).registerUriHandler(new HypermergeUriHandler(output))
+  );
 
   // self-registers
   new HypermergeExplorer(context, hypermergeWrapper);

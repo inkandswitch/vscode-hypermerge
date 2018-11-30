@@ -15,15 +15,15 @@ export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     HypermergeNodeKey | undefined
-    > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
+  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
   readonly onDidChangeTreeData: vscode.Event<
     HypermergeNodeKey | undefined
-    > = this._onDidChangeTreeData.event;
+  > = this._onDidChangeTreeData.event;
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
-    this.hypermergeWrapper.addListener("update", uri => {
-      this._onDidChangeTreeData.fire(uri);
+    this.hypermergeWrapper.addListener("update", (uri: vscode.Uri) => {
+      this._onDidChangeTreeData.fire(uri.toString());
     });
   }
 
@@ -72,7 +72,7 @@ export class HypermergeTreeDataProvider
   }
 
   public addRoot(uriString: string) {
-    if (this.roots().has(uriString)) return
+    if (this.roots().has(uriString)) return;
 
     const inspectRoots = vscode.workspace
       .getConfiguration("hypermergefs")
@@ -190,13 +190,16 @@ export class HypermergeExplorer {
       treeDataProvider.refresh()
     );
 
-    vscode.commands.registerCommand("hypermergeExplorer.open", (uriString: string) => {
-      if (!this.validateURL(uriString)) {
-        treeDataProvider.addRoot(uriString);
-        treeDataProvider.refresh();
-        vscode.workspace.openTextDocument(vscode.Uri.parse(uriString))
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.open",
+      (uriString: string) => {
+        if (!this.validateURL(uriString)) {
+          treeDataProvider.addRoot(uriString);
+          treeDataProvider.refresh();
+          vscode.workspace.openTextDocument(vscode.Uri.parse(uriString));
+        }
       }
-    });
+    );
 
     context.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration(e => {
