@@ -4,6 +4,7 @@ import { HypermergeFS } from "./fileSystemProvider";
 import { HypermergeExplorer } from "./treeview";
 import { HypermergeViewContainer } from "./details";
 import { HypermergeWrapper } from "./fauxmerge";
+import HypermergeDocumentLinkProvider from "./DocumentLinkProvider";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("HypermergeFS activated");
@@ -15,6 +16,12 @@ export function activate(context: vscode.ExtensionContext) {
       isCaseSensitive: true
     })
   );
+
+  context.subscriptions.push(
+    vscode.languages.registerDocumentLinkProvider({ scheme: "*" },
+      new HypermergeDocumentLinkProvider()
+    )
+  )
 
   vscode.workspace.onDidOpenTextDocument(document => {
     if (document.uri.scheme === "hypermerge") {
