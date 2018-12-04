@@ -148,7 +148,7 @@
     "clipboardy": "^1.2.3",
     "deep-diff": "github:jeffpeterson/diff",
     "discovery-cloud-client": "https://github.com/orionz/discovery-cloud-client",
-    "hypermerge": "git+https://github.com/automerge/hypermerge.git#fork",
+    "hypermerge": "github:automerge/hypermerge#fork",
     "pump": "^3.0.0",
     "random-access-file": "^2.0.1",
     "random-access-memory": "^3.0.0",
