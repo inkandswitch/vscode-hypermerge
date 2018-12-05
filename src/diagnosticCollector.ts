@@ -13,9 +13,12 @@ export default class HypermergeDiagnosticCollector {
 
     hypermergeWrapper.addListener("update", (uri, doc) => {
       try {
+        // we always clear, since an update means a new document.
+        diagnosticCollection.clear();
+
         const { hypermergeFsDiagnostics } = doc;
+
         if (hypermergeFsDiagnostics) {
-          diagnosticCollection.clear();
           for (const [target, items] of Object.entries(
             hypermergeFsDiagnostics
           )) {
