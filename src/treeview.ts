@@ -22,8 +22,17 @@ export class HypermergeTreeDataProvider
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
-    this.hypermergeWrapper.addListener("update", uri => {
-      this._onDidChangeTreeData.fire(uri);
+    this.hypermergeWrapper.addListener("update", (uri, doc) => {
+      const details = interpretHypermergeUri(uri);
+
+      // Handle bad URLs.
+      if (!details) {
+        return { label: "<invalid hypermerge URL>" };
+      }
+
+      let { docId, keyPath } = details;
+      this.treeItemCache.set(docId, doc);
+      this._onDidChangeTreeData.fire(uri.toString());
     });
   }
 
@@ -31,44 +40,63 @@ export class HypermergeTreeDataProvider
     this._onDidChangeTreeData.fire();
   }
 
-  public getTreeItem(element: HypermergeNodeKey): Thenable<vscode.TreeItem> {
-    // XXX: we should be building a cache of results & maintaining it over time here
-    const resourceUri = vscode.Uri.parse(element);
+  private treeItemCache = new Map<HypermergeNodeKey, any>();
 
+  public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
+    const resourceUri = vscode.Uri.parse(element);
     const details = interpretHypermergeUri(resourceUri);
+
+    // Handle bad URLs.
     if (!details) {
-      return Promise.resolve({ label: "<BAD URL>" });
+      return { label: "<invalid hypermerge URL>" };
     }
 
-    return this.hypermergeWrapper
-      .openDocumentUri(resourceUri)
-      .then((content: any) => {
-        let { docId, keyPath } = details;
+    let { docId, keyPath } = details;
 
-        let label;
-        if (keyPath.length) {
-          label = keyPath.pop();
-        } else if (content.title) {
-          label = `[${docId.slice(0, 5)}] ${content.title}`;
-        } else {
-          label = docId;
+    const content = this.treeItemCache.get(docId);
+
+    // Handle the case where we haven't loaded any content yet.
+    // TODO: Add support to show loading progress.
+    if (!content) {
+      // schedule initial loading.
+      this.hypermergeWrapper.openDocumentUri(resourceUri);
+
+      const collapsibleState = vscode.TreeItemCollapsibleState.None;
+      return {
+        label: `[${docId.slice(0, 5)}] (Loading...)`,
+        resourceUri,
+        collapsibleState,
+        command: {
+          command: "vscode.open",
+          arguments: [resourceUri],
+          title: "Open Hypermerge Document"
         }
+      };
+    }
 
-        const collapsibleState =
-          content instanceof Array || content instanceof Object
-            ? vscode.TreeItemCollapsibleState.Collapsed
-            : vscode.TreeItemCollapsibleState.None;
-        return {
-          label,
-          resourceUri,
-          collapsibleState,
-          command: {
-            command: "vscode.open",
-            arguments: [resourceUri],
-            title: "Open Hypermerge Document"
-          }
-        };
-      });
+    let label;
+    if (keyPath.length) {
+      label = keyPath.pop();
+    } else if (content.title) {
+      label = `[${docId.slice(0, 5)}] ${content.title}`;
+    } else {
+      label = `[${docId.slice(0, 5)}] (No /title)`;
+    }
+
+    const collapsibleState =
+      content instanceof Array || content instanceof Object
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.None;
+    return {
+      label,
+      resourceUri,
+      collapsibleState,
+      command: {
+        command: "vscode.open",
+        arguments: [resourceUri],
+        title: "Open Hypermerge Document"
+      }
+    };
   }
 
   public addRoot(uriString: string) {
