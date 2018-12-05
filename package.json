@@ -2,7 +2,7 @@
   "name": "vscode-hypermergefs",
   "displayName": "HypermergeFS",
   "description": "Browse and edit a Hypermerge document tree.",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "publisher": "inkandswitch",
   "repository": {
     "url": "https://github.com/inkandswitch/hypermergefs.git",
