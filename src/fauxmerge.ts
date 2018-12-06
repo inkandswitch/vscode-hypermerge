@@ -68,7 +68,7 @@ export class HypermergeWrapper extends EventEmitter {
       if (!this.openIds.has(docId)) {
         this.openIds.add(docId);
         this.repo.open(docId).subscribe((doc: any) => {
-          this.emit("update", uri);
+          this.emit("update", uri, doc);
         });
       }
 
