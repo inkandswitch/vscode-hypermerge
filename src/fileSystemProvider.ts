@@ -51,6 +51,9 @@ export class HypermergeFS implements vscode.FileSystemProvider {
     options: { create: boolean; overwrite: boolean }
   ): void {
     // not great
+    if (uri.query) {
+      throw vscode.FileSystemError.NoPermissions;
+    }
     try {
       const result = JSON.parse(content.toString());
       this.hypermerge.setDocumentUri(uri, result);
