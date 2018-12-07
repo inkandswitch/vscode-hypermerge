@@ -1,11 +1,11 @@
 {
-  "name": "vscode-hypermergefs",
-  "displayName": "HypermergeFS",
+  "name": "hypermerge",
+  "displayName": "Hypermerge",
   "description": "Browse and edit a Hypermerge document tree.",
   "version": "0.1.2",
   "publisher": "inkandswitch",
   "repository": {
-    "url": "https://github.com/inkandswitch/hypermergefs.git",
+    "url": "https://github.com/inkandswitch/hypermergefs-vscode.git",
     "type": "git"
   },
   "engines": {
@@ -22,12 +22,12 @@
   "main": "./out/src/extension",
   "contributes": {
     "configuration": {
-      "title": "HypermergeFS",
+      "title": "Hypermerge",
       "properties": {
         "hypermergefs.roots": {
           "type": "array",
           "default": [],
-          "description": "A list of hypermergefs URLs to use as roots in the browser."
+          "description": "A list of hypermerge URLs to use as roots in the browser."
         },
         "hypermergefs.debug": {
           "type": "string",
