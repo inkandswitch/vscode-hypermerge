@@ -1,5 +1,6 @@
 "use strict";
 import * as vscode from "vscode";
+import DebugManager from "./DebugManager";
 import { HypermergeFS } from "./fileSystemProvider";
 import { HypermergeExplorer } from "./treeview";
 import { HypermergeViewContainer } from "./details";
@@ -9,14 +10,21 @@ import HypermergeDocumentLinkProvider from "./DocumentLinkProvider";
 import HypermergeDiagnosticCollector from "./diagnosticCollector";
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log("HypermergeFS activated");
+  const output = vscode.window.createOutputChannel("Hypermerge");
+  const debugManager = new DebugManager(output)
+
+
+  output.appendLine("HypermergeFS activated");
+
   const hypermergeWrapper = new HypermergeWrapper();
 
-  const output = vscode.window.createOutputChannel("Hypermerge");
 
   const hypermergeFs = new HypermergeFS(hypermergeWrapper);
 
   context.subscriptions.push(
+    output,
+    debugManager,
+
     vscode.workspace.registerFileSystemProvider("hypermerge", hypermergeFs, {
       isCaseSensitive: true
     }),

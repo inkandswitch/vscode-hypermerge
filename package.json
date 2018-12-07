@@ -28,6 +28,11 @@
           "type": "array",
           "default": [],
           "description": "A list of hypermergefs URLs to use as roots in the browser."
+        },
+        "hypermergefs.debug": {
+          "type": "string",
+          "default": "",
+          "description": "A comma-separated glob string for enabling debug channels. See the 'debug' npm module. If you're unsure, try '*'."
         }
       }
     },
