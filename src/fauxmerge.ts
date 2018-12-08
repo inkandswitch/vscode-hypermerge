@@ -20,12 +20,17 @@ export function interpretHypermergeUri(
   if (uri.scheme === "hypermerge") {
     const [_, docId, ...keyPath] = uri.path.split("/");
 
-    const input = uri.query.split("&").map(pair => {
-      const halves = pair.split("=");
-      return [halves[0], halves[1]] as [string, string];
-    });
-    const seq = uri.query && uri.query.startsWith("seq=") ? parseInt(uri.query.slice(4)) : undefined
-    const label = new Map<string, string>(input).get("label");
+    const input = new Map<string, string>(
+      uri.query.split("&").map(pair => {
+        const halves = pair.split("=");
+        return [halves[0], halves[1]] as [string, string];
+      })
+    );
+
+    const seqString = input.get("seq");
+    const seq = seqString ? parseInt(seqString) : undefined;
+
+    const label = input.get("label");
     return { docId, keyPath, label, seq };
   }
   if (uri.scheme === "capstone") {
@@ -42,7 +47,7 @@ const storage = raf;
 
 export class HypermergeWrapper extends EventEmitter {
   repo = new Repo({ path, storage });
-  handles: { [docId: string] : Handle<any> } = {}
+  handles: { [docId: string]: Handle<any> } = {};
 
   constructor() {
     super();
@@ -64,17 +69,18 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {
-    const { docId = "", keyPath = [], seq = undefined } = interpretHypermergeUri(uri) || {};
-    const id = docId
-    const h = this.handles
+    const { docId = "", keyPath = [], seq = undefined } =
+      interpretHypermergeUri(uri) || {};
+    const id = docId;
+    const h = this.handles;
     return new Promise((resolve, reject) => {
-      const subDoc = (doc) => resolve(this.resolveSubDocument(doc, keyPath))
-      const update = (doc) => this.emit("update", uri, doc)
+      const subDoc = doc => resolve(this.resolveSubDocument(doc, keyPath));
+      const update = doc => this.emit("update", uri, doc);
       if (seq) {
-        this.repo.materialize(id, seq, subDoc)
+        this.repo.materialize(id, seq, subDoc);
       } else {
-        h[id] = h[id] || this.repo.watch(id,update)
-        this.repo.doc(id, subDoc)
+        h[id] = h[id] || this.repo.watch(id, update);
+        this.repo.doc(id, subDoc);
       }
     });
   }
@@ -108,8 +114,8 @@ export class HypermergeWrapper extends EventEmitter {
       return null;
     }
 
-    const followId = this.repo.create()
-    this.repo.follow(followId, docId)
+    const followId = this.repo.create();
+    this.repo.follow(followId, docId);
     return vscode.Uri.parse("hypermerge:/" + followId);
   }
 
