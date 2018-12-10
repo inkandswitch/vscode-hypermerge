@@ -2,11 +2,10 @@
 
 Browse & edit Hypermerge documents. This VSCode extension was built to work with REaLM but should be mostly compatible with Capstone, PushPin, and other Hypermerge projects (though support is subject to the vagaries of research software version drift.)
 
-* Download the VSIX file from the Releases page.
-* In VSCode, type Ctrl-Shift-P, "VSIX" and you should see one command remaining in the filter.
-* Choose the file you downloaded. You'll be prompted to reload the window.
+* Install the Hypermerge VScode extension. (It is listed in the VSCode extension store.)
 * In the File / Documents tab, you should now see a HypermergeFS tab.
 * Hover over the title of that tab, click the [...] icon, select "Open Document" and paste in a hypermerge document link.
+* Alternately, create a new hypermerge document.
 
 If you want to work on, debug, or develop on the VSCode extension follow these steps instead:
  * Check out this repository.
@@ -17,6 +16,6 @@ If you want to work on, debug, or develop on the VSCode extension follow these s
  
 You're off to the races!
 
-## Using HypermergeFS
+## Using Hypermerge for VSCode
 
-HypermergeFS can open arbitrary hypermerge files and treat them as both JSON and nested directory structures. You'll see a "HypermergeFS" panel appear in the filesystem / document browser tab. From there you can either import URLs or create new documents.
+Hypermerge can open arbitrary hypermerge files and treat them as both JSON and nested directory structures. You'll see a "Hypermerge" panel appear in the filesystem / document browser tab. From there you can either import URLs or create new documents. While looking at a Hypermerge document you should see a Hypermerge details pane appear in the list of views on the left navigation bar. Clicking it will display a special panel with details about the hypermerge document you're currently viewing, including providing a mechanism for navigating the document's history.
