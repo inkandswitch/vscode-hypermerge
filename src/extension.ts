@@ -56,4 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
   new HypermergeDiagnosticCollector(context, hypermergeWrapper);
   new HypermergeExplorer(context, hypermergeWrapper);
   new HypermergeViewContainer(context, hypermergeWrapper);
+
+  return {
+    repo: hypermergeWrapper.repo,
+  }
 }
