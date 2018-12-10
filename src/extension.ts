@@ -11,13 +11,11 @@ import HypermergeDiagnosticCollector from "./diagnosticCollector";
 
 export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel("Hypermerge");
-  const debugManager = new DebugManager(output)
-
+  const debugManager = new DebugManager(output);
 
   output.appendLine("HypermergeFS activated");
 
   const hypermergeWrapper = new HypermergeWrapper();
-
 
   const hypermergeFs = new HypermergeFS(hypermergeWrapper);
 
@@ -37,7 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.languages.registerDocumentLinkProvider({ scheme: "*" },
+    vscode.languages.registerDocumentLinkProvider(
+      { scheme: "*" },
       new HypermergeDocumentLinkProvider()
     ),
 
@@ -47,6 +46,19 @@ export function activate(context: vscode.ExtensionContext) {
           (vscode.languages as any).setTextDocumentLanguage(document, "json");
         }
       }
+    }),
+
+    vscode.workspace.onDidChangeTextDocument(event => {
+      if (event.document.uri.scheme !== "hypermerge") {
+        return;
+      }
+
+      hypermergeWrapper.spliceTextUri(
+        event.document.uri,
+        event.contentChanges[0].rangeOffset,
+        event.contentChanges[0].rangeLength,
+        event.contentChanges[0].text
+      );
     }),
 
     (vscode.window as any).registerUriHandler(new HypermergeUriHandler(output))

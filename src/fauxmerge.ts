@@ -1,11 +1,11 @@
-import * as vscode from "vscode";
-
-import { Repo } from "hypermerge";
-const raf = require("random-access-file");
-
+import { DeepDiff } from "deep-diff";
 import DiscoveryCloud from "discovery-cloud-client";
 import { EventEmitter } from "events";
-import { DeepDiff } from "deep-diff";
+import { Repo } from "hypermerge";
+import * as vscode from "vscode";
+import { Text } from "automerge/frontend";
+
+const raf = require("random-access-file");
 
 interface HypermergeNodeDetails {
   docId: string;
@@ -53,6 +53,9 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   resolveSubDocument(doc: any, keyPath): any {
+    if (keyPath[0] === "text") {
+      return doc.text.join("");
+    }
     let content = doc;
     let key;
     while ((key = keyPath.shift())) {
@@ -84,6 +87,7 @@ export class HypermergeWrapper extends EventEmitter {
     // FIXME: orion, we can't open newly created docs before their first change
     this.repo.open(docId).change(doc => {
       doc.title = "New Document";
+      doc.text = new Text();
     });
 
     return vscode.Uri.parse("hypermerge:/" + docId);
@@ -135,5 +139,23 @@ export class HypermergeWrapper extends EventEmitter {
       DeepDiff.applyDiff(content, newDoc);
     });
     handle.close();
+  }
+
+  spliceTextUri(uri, offset, length, text) {
+    const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {};
+    if (keyPath[0] != "text") {
+      return;
+    }
+    const handle = this.repo.open(docId);
+    handle.change(doc => {
+      if (text === "") {
+        while (length > 0) {
+          doc.text.deleteAt(offset);
+        }
+      } else {
+        const chars = text.split("");
+        doc.text.insertAt(offset, ...chars);
+      }
+    });
   }
 }
