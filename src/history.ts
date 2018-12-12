@@ -12,10 +12,17 @@ export class HypermergeHistoryTreeDataProvider
     HypermergeHistoryKey | undefined
   > = this._onDidChangeTreeData.event;
 
+  private uri: vscode.Uri | undefined;
+
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
+    console.log("SETTING UP: DID CHANGE");
     this.hypermergeWrapper.addListener("update", uri => {
-      this._onDidChangeTreeData.fire(uri);
+      console.log("DID CHANGE");
+      //this._onDidChangeTreeData.fire(uri);
+      if (this.uri && this.uri.toString() === uri.toString()) {
+        this._onDidChangeTreeData.fire();
+      }
     });
   }
 
@@ -24,24 +31,27 @@ export class HypermergeHistoryTreeDataProvider
   }
 
   public getTreeItem(element: HypermergeHistoryKey): Thenable<vscode.TreeItem> {
-    const resourceUri = vscode.Uri.parse(element);
-
     const collapsibleState = vscode.TreeItemCollapsibleState.None;
-
-    return Promise.resolve({
-      label: element,
-      resourceUri,
-      collapsibleState,
-      command: {
-        command: "vscode.open",
-        arguments: [resourceUri],
-        title: "Open Hypermerge Document"
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      if (editor.document.uri.scheme === "hypermerge") {
+        this.uri = editor.document.uri;
+        const resourceUri = vscode.Uri.parse(
+          this.uri.toString() + "?history=" + element
+        );
+        return Promise.resolve({
+          label: "history=" + element,
+          resourceUri,
+          collapsibleState,
+          command: {
+            command: "vscode.open",
+            arguments: [resourceUri],
+            title: "Open Hypermerge Document"
+          }
+        });
       }
-    });
-  }
-
-  private roots(): HypermergeHistoryKey[] {
-    return ["one", "two", "three"];
+    }
+    throw vscode.FileSystemError.NoPermissions;
   }
 
   attemptToInterpretUrl(str: string): { docId?: string; keyPath?: string[] } {
@@ -57,7 +67,23 @@ export class HypermergeHistoryTreeDataProvider
   public getChildren(
     element?: HypermergeHistoryKey
   ): HypermergeHistoryKey[] | Thenable<HypermergeHistoryKey[]> {
-    return element ? [] : [...this.roots()];
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      if (editor.document.uri.scheme === "hypermerge") {
+        const { docId = "", keyPath = [] } = interpretHypermergeUri(
+          editor.document.uri
+        )!;
+        const meta = this.hypermergeWrapper.repo.meta(docId)!;
+        const actor = meta.actor!;
+        const n = meta.history;
+        const history = [...Array(n).keys()]
+          .reverse()
+          .map(i => (i + 1).toString());
+        return history;
+      }
+      return ["not a hypermerge doc"];
+    }
+    return ["no activeTextEditor"];
   }
 
   public getParent(element: HypermergeHistoryKey): HypermergeHistoryKey | null {
