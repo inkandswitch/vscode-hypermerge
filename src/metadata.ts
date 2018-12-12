@@ -12,33 +12,74 @@ export class HypermergeMetadataTreeDataProvider
     HypermergeMetadataKey | undefined
   > = this._onDidChangeTreeData.event;
 
+  private activeDocumentUri: vscode.Uri | undefined;
+
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
-    this.hypermergeWrapper.addListener("update", uri => {
-      this._onDidChangeTreeData.fire(uri);
+
+    vscode.window.onDidChangeActiveTextEditor(() =>
+      this.onActiveEditorChanged()
+    );
+    this.onActiveEditorChanged(); // call it the first time on startup
+
+    // XXX looks like this might be broken
+    this.hypermergeWrapper.addListener("update", updatedDocumentUri => {
+      if (
+        this.activeDocumentUri &&
+        this.activeDocumentUri.toString() === updatedDocumentUri.toString()
+      ) {
+        this._onDidChangeTreeData.fire();
+      }
     });
   }
 
-  public refresh(): any {
-    this._onDidChangeTreeData.fire();
+  private onActiveEditorChanged(): void {
+    if (
+      vscode.window.activeTextEditor &&
+      vscode.window.activeTextEditor.document.uri.scheme === "hypermerge"
+    ) {
+      this.activeDocumentUri = vscode.window.activeTextEditor.document.uri;
+      this.refresh();
+    }
   }
 
-  public getTreeItem(
-    element: HypermergeMetadataKey
-  ): Thenable<vscode.TreeItem> {
-    const resourceUri = vscode.Uri.parse(element);
+  public refresh(key?: HypermergeMetadataKey): any {
+    this._onDidChangeTreeData.fire(key);
+  }
 
+  public getTreeItem(element: HypermergeMetadataKey): vscode.TreeItem {
     const collapsibleState = vscode.TreeItemCollapsibleState.None;
 
-    return Promise.resolve({
-      label: element,
-      resourceUri,
-      collapsibleState
-    });
-  }
+    // Make sure we're in a valid hypermerge document.
+    if (!this.activeDocumentUri) {
+      return { label: "no active hypermerge doc" };
+    }
+    const details = interpretHypermergeUri(this.activeDocumentUri);
+    if (!details) {
+      return { label: "bad URI" };
+    }
 
-  private roots(): HypermergeMetadataKey[] {
-    return ["actor", "Clocks"];
+    // Create an array of results.
+    const { docId = "" } = details;
+    if (element === "actor") {
+      const meta = this.hypermergeWrapper.repo.meta(docId)!;
+      return {
+        label: "Local Actor: " + meta.actor,
+        collapsibleState
+      };
+    }
+    if (element === "clocks") {
+      return {
+        label: "Current Vector Clock",
+        collapsibleState: vscode.TreeItemCollapsibleState.Expanded
+      };
+    }
+
+    // elsewise we have a clock entry
+    return {
+      label: element,
+      collapsibleState
+    };
   }
 
   attemptToInterpretUrl(str: string): { docId?: string; keyPath?: string[] } {
@@ -54,7 +95,28 @@ export class HypermergeMetadataTreeDataProvider
   public getChildren(
     element?: HypermergeMetadataKey
   ): HypermergeMetadataKey[] | Thenable<HypermergeMetadataKey[]> {
-    return element ? [] : [...this.roots()];
+    // Make sure we're in a valid hypermerge document.
+    if (!this.activeDocumentUri) {
+      return ["no active hypermerge doc"];
+    }
+    const details = interpretHypermergeUri(this.activeDocumentUri);
+    if (!details) {
+      return ["bad URI"];
+    }
+
+    // Create an array of results.
+    const { docId = "" } = details;
+
+    const meta = this.hypermergeWrapper.repo.meta(docId)!;
+
+    if (element === "clocks") {
+      const clock = meta.clock;
+      return Object.entries(clock).map(
+        ([key, value]) => `[${key.slice(0, 5)}]: ${value}`
+      );
+    }
+
+    return ["actor", "clocks"];
   }
 
   public getParent(

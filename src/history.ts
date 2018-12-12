@@ -12,46 +12,63 @@ export class HypermergeHistoryTreeDataProvider
     HypermergeHistoryKey | undefined
   > = this._onDidChangeTreeData.event;
 
-  private uri: vscode.Uri | undefined;
+  private activeDocumentUri: vscode.Uri | undefined;
+  private editor: vscode.TextEditor;
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
-    console.log("SETTING UP: DID CHANGE");
-    this.hypermergeWrapper.addListener("update", uri => {
-      console.log("DID CHANGE");
-      //this._onDidChangeTreeData.fire(uri);
-      if (this.uri && this.uri.toString() === uri.toString()) {
+
+    vscode.window.onDidChangeActiveTextEditor(() =>
+      this.onActiveEditorChanged()
+    );
+    this.onActiveEditorChanged(); // call it the first time on startup
+
+    // XXX looks like this might be broken
+    this.hypermergeWrapper.addListener("update", updatedDocumentUri => {
+      if (
+        this.activeDocumentUri &&
+        this.activeDocumentUri.toString() === updatedDocumentUri.toString()
+      ) {
         this._onDidChangeTreeData.fire();
       }
     });
   }
 
-  public refresh(): any {
-    this._onDidChangeTreeData.fire();
+  private onActiveEditorChanged(): void {
+    if (
+      vscode.window.activeTextEditor &&
+      vscode.window.activeTextEditor.document.uri.scheme === "hypermerge"
+    ) {
+      this.activeDocumentUri = vscode.window.activeTextEditor.document.uri;
+      this.refresh();
+    }
   }
 
-  public getTreeItem(element: HypermergeHistoryKey): Thenable<vscode.TreeItem> {
+  public refresh(key?: HypermergeHistoryKey): any {
+    this._onDidChangeTreeData.fire(key);
+  }
+
+  public getTreeItem(element: HypermergeHistoryKey): vscode.TreeItem {
     const collapsibleState = vscode.TreeItemCollapsibleState.None;
-    const editor = vscode.window.activeTextEditor;
-    if (editor) {
-      if (editor.document.uri.scheme === "hypermerge") {
-        this.uri = editor.document.uri;
-        const resourceUri = vscode.Uri.parse(
-          this.uri.toString() + "?history=" + element
-        );
-        return Promise.resolve({
-          label: "history=" + element,
-          resourceUri,
-          collapsibleState,
-          command: {
-            command: "vscode.open",
-            arguments: [resourceUri],
-            title: "Open Hypermerge Document"
-          }
-        });
-      }
+
+    if (!this.activeDocumentUri) {
+      console.log("How can we be here?");
+      return { label: "No open hypermerge doc " };
     }
-    throw vscode.FileSystemError.NoPermissions;
+
+    const resourceUri = this.activeDocumentUri.with({
+      query: "history=" + element
+    });
+    return {
+      label: "history=" + element,
+      resourceUri,
+      collapsibleState,
+      command: {
+        command: "vscode.open",
+        arguments: [resourceUri],
+        title: "Open Hypermerge Document"
+      }
+    };
   }
 
   attemptToInterpretUrl(str: string): { docId?: string; keyPath?: string[] } {
@@ -67,23 +84,26 @@ export class HypermergeHistoryTreeDataProvider
   public getChildren(
     element?: HypermergeHistoryKey
   ): HypermergeHistoryKey[] | Thenable<HypermergeHistoryKey[]> {
-    const editor = vscode.window.activeTextEditor;
-    if (editor) {
-      if (editor.document.uri.scheme === "hypermerge") {
-        const { docId = "", keyPath = [] } = interpretHypermergeUri(
-          editor.document.uri
-        )!;
-        const meta = this.hypermergeWrapper.repo.meta(docId)!;
-        const actor = meta.actor!;
-        const n = meta.history;
-        const history = [...Array(n).keys()]
-          .reverse()
-          .map(i => (i + 1).toString());
-        return history;
-      }
-      return ["not a hypermerge doc"];
+    // History is flat -- only return children for the root node
+    if (element) {
+      return [];
     }
-    return ["no activeTextEditor"];
+
+    // Make sure we're in a valid hypermerge document.
+    if (!this.activeDocumentUri) {
+      return ["no active hypermerge doc"];
+    }
+    const details = interpretHypermergeUri(this.activeDocumentUri);
+    if (!details) {
+      return ["bad URI"];
+    }
+
+    // Create an array of results.
+    const { docId = "" } = details;
+    const meta = this.hypermergeWrapper.repo.meta(docId)!;
+    const n = meta.history;
+    const history = [...Array(n).keys()].reverse().map(i => (i + 1).toString());
+    return history;
   }
 
   public getParent(element: HypermergeHistoryKey): HypermergeHistoryKey | null {
