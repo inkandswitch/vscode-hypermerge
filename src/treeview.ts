@@ -108,6 +108,7 @@ export class HypermergeTreeDataProvider
             this.hypermergeWrapper.repo.back.meta
               .docs()
               .map(id => "hypermerge:/" + id)
+              .sort()
           ),
         5000
       );
@@ -166,10 +167,7 @@ export class HypermergeTreeDataProvider
 
 export class HypermergeExplorer {
   // TODO:
-  // plus icon for "add root"
   // better error reporting on invalid json
-  // actually diff the files on save instead of replacing them
-  // handle missing files in the tree view
   private hypermergeViewer: vscode.TreeView<HypermergeNodeKey>;
 
   constructor(
@@ -196,14 +194,6 @@ export class HypermergeExplorer {
       }
     );
 
-    context.subscriptions.push(
-      vscode.workspace.onDidChangeConfiguration(e => {
-        if (e.affectsConfiguration("hypermergefs.roots")) {
-          treeDataProvider.refresh();
-        }
-      })
-    );
-
     vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri();
       if (uri) {
@@ -217,6 +207,7 @@ export class HypermergeExplorer {
         validateInput: this.validateURL
       });
       if (uriString) {
+        hypermergeWrapper.openDocumentUri(vscode.Uri.parse(uriString));
         treeDataProvider.refresh();
       }
     });
