@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import { Handle, Repo } from "hypermerge";
 const raf = require("random-access-file");
 
-import DiscoveryCloud from "discovery-cloud-client";
+const DiscoverySwarm = require("discovery-swarm");
 import { EventEmitter } from "events";
 import { DeepDiff } from "deep-diff";
 
@@ -11,7 +11,7 @@ interface HypermergeNodeDetails {
   docId: string;
   keyPath: string[];
   label?: string;
-  seq?: number;
+  history?: number;
 }
 
 export function interpretHypermergeUri(
@@ -27,11 +27,11 @@ export function interpretHypermergeUri(
       })
     );
 
-    const seqString = input.get("seq");
-    const seq = seqString ? parseInt(seqString) : undefined;
+    const historyString = input.get("history");
+    const history = historyString ? parseInt(historyString) : undefined;
 
     const label = input.get("label");
-    return { docId, keyPath, label, seq };
+    return { docId, keyPath, label, history };
   }
   if (uri.scheme === "capstone") {
     const pathElements = uri.path.split("/");
@@ -54,8 +54,7 @@ export class HypermergeWrapper extends EventEmitter {
 
     const stream = this.repo.stream;
     const id = this.repo.id;
-    const url = "wss://discovery-cloud.herokuapp.com";
-    const hyperswarmwrapper = new DiscoveryCloud({ stream, id, url });
+    const hyperswarmwrapper = new DiscoverySwarm({ stream, id });
     this.repo.replicate(hyperswarmwrapper);
   }
 
@@ -69,15 +68,15 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {
-    const { docId = "", keyPath = [], seq = undefined } =
+    const { docId = "", keyPath = [], history = undefined } =
       interpretHypermergeUri(uri) || {};
     const id = docId;
     const h = this.handles;
     return new Promise((resolve, reject) => {
       const subDoc = doc => resolve(this.resolveSubDocument(doc, keyPath));
       const update = doc => this.emit("update", uri, doc);
-      if (seq) {
-        this.repo.materialize(id, seq, subDoc);
+      if (history) {
+        this.repo.materialize(id, history, subDoc);
       } else {
         h[id] = h[id] || this.repo.watch(id, update);
         this.repo.doc(id, subDoc);

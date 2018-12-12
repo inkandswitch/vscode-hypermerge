@@ -9,6 +9,18 @@ export class HypermergeFS implements vscode.FileSystemProvider {
     this.hypermerge = hypermergeWrapper;
 
     this.hypermerge.on("update", uri => {
+      if (uri.path == "/text") {
+        // TODO:
+        const range = new vscode.Range(
+          new vscode.Position(0, 0),
+          new vscode.Position(0, 5)
+        );
+        const newText = "hello";
+        let edit = new vscode.WorkspaceEdit();
+        edit.replace(uri, range, newText);
+        vscode.workspace.applyEdit(edit);
+        return;
+      }
       this._fireSoon({ type: vscode.FileChangeType.Changed, uri });
     });
   }
