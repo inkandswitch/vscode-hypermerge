@@ -13,7 +13,6 @@ export class HypermergeHistoryTreeDataProvider
   > = this._onDidChangeTreeData.event;
 
   private activeDocumentUri: vscode.Uri | undefined;
-  private editor: vscode.TextEditor;
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;

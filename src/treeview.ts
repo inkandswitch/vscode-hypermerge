@@ -15,10 +15,10 @@ export class HypermergeTreeDataProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
     HypermergeNodeKey | undefined
-    > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
+  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
   readonly onDidChangeTreeData: vscode.Event<
     HypermergeNodeKey | undefined
-    > = this._onDidChangeTreeData.event;
+  > = this._onDidChangeTreeData.event;
 
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
@@ -100,51 +100,18 @@ export class HypermergeTreeDataProvider
     };
   }
 
-  public addRoot(uriString: string) {
-    if (this.roots().has(uriString)) return;
-
-    const inspectRoots = vscode.workspace
-      .getConfiguration("hypermergefs")
-      .inspect<string[]>("roots");
-
-    const roots = (inspectRoots && inspectRoots.globalValue) || [];
-
-    vscode.workspace
-      .getConfiguration("hypermergefs")
-      .update(
-        "roots",
-        [uriString, ...roots],
-        vscode.ConfigurationTarget.Global
+  private roots(): Thenable<HypermergeNodeKey[]> {
+    return new Promise(resolve => {
+      setTimeout(
+        () =>
+          resolve(
+            this.hypermergeWrapper.repo.back.meta
+              .docs()
+              .map(id => "hypermerge:/" + id)
+          ),
+        5000
       );
-  }
-
-  public removeRoot(uriString: string) {
-    const roots = this.inspectRoots().user;
-
-    roots.delete(uriString);
-
-    vscode.workspace
-      .getConfiguration("hypermergefs")
-      .update("roots", [...roots], vscode.ConfigurationTarget.Global);
-  }
-
-  private roots(): Set<HypermergeNodeKey> {
-    const details = this.inspectRoots();
-
-    return new Set([...details.user, ...details.workspace, ...details.default]);
-  }
-
-  private inspectRoots(): RootDetails {
-    const insp =
-      vscode.workspace
-        .getConfiguration("hypermergefs")
-        .inspect<string[]>("roots") || <any>{};
-
-    return {
-      user: new Set(insp.globalValue),
-      workspace: new Set(insp.workspaceValue),
-      default: new Set(insp.defaultValue)
-    };
+    });
   }
 
   private getDocumentChildren(
@@ -185,8 +152,8 @@ export class HypermergeTreeDataProvider
 
   public getChildren(
     element?: HypermergeNodeKey
-  ): HypermergeNodeKey[] | Thenable<HypermergeNodeKey[]> {
-    return element ? this.getDocumentChildren(element) : [...this.roots()];
+  ): Thenable<HypermergeNodeKey[]> {
+    return element ? this.getDocumentChildren(element) : this.roots();
   }
 
   public getParent(element: HypermergeNodeKey): HypermergeNodeKey | null {
@@ -223,7 +190,6 @@ export class HypermergeExplorer {
       "hypermergeExplorer.open",
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
-          treeDataProvider.addRoot(uriString);
           treeDataProvider.refresh();
           vscode.workspace.openTextDocument(vscode.Uri.parse(uriString));
         }
@@ -241,7 +207,6 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri();
       if (uri) {
-        treeDataProvider.addRoot(uri.toString());
         treeDataProvider.refresh();
       }
     });
@@ -252,7 +217,6 @@ export class HypermergeExplorer {
         validateInput: this.validateURL
       });
       if (uriString) {
-        treeDataProvider.addRoot(uriString);
         treeDataProvider.refresh();
       }
     });
@@ -260,7 +224,8 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand(
       "hypermergeExplorer.remove",
       async resourceUri => {
-        treeDataProvider.removeRoot(resourceUri);
+        // XXX TODO
+        // treeDataProvider.removeRoot(resourceUri);
       }
     );
 
@@ -284,7 +249,6 @@ export class HypermergeExplorer {
 
         const uriString = newUrl.toString();
         if (uriString) {
-          treeDataProvider.addRoot(uriString);
           treeDataProvider.refresh();
         }
       }
@@ -302,7 +266,6 @@ export class HypermergeExplorer {
 
         const uriString = newUrl.toString();
         if (uriString) {
-          treeDataProvider.addRoot(uriString);
           treeDataProvider.refresh();
         }
       }
