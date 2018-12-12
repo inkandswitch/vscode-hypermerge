@@ -1,6 +1,0 @@
-# plugin features
-
-right-click fork
-see history / undo / revert
- 
-switch to CRCed base58
