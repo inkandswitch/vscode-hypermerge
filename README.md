@@ -9,7 +9,7 @@ Browse & edit Hypermerge documents. This VSCode extension was built to work with
 
 If you want to work on, debug, or develop on the VSCode extension follow these steps instead:
  * Check out this repository.
- * `npm install` (as of this writing, the repo does not work with yarn because of choices made upstream. patches welcome)
+ * Run `yarn` to install dependencies. 
  * Open the repository in vscode (e.g. `$ code . `)
  * Go to Debug -> Start Debugging (F5) in the menu.
  * A second, new VSCode window will open running the extension version you just built. You'll be able to put breakpoints in the code and see debug output in your original window. The new window will be labeled \[Extension Development\] so you can recognize it.
@@ -19,3 +19,7 @@ You're off to the races!
 ## Using Hypermerge for VSCode
 
 Hypermerge can open arbitrary hypermerge files and treat them as both JSON and nested directory structures. You'll see a "Hypermerge" panel appear in the filesystem / document browser tab. From there you can either import URLs or create new documents. While looking at a Hypermerge document you should see a Hypermerge details pane appear in the list of views on the left navigation bar. Clicking it will display a special panel with details about the hypermerge document you're currently viewing, including providing a mechanism for navigating the document's history.
+
+## Publishing a Release
+
+You'll want to [follow the instructions](https://code.visualstudio.com/docs/extensions/publish-extension) in the VSCE user manual, but to publish after setting up your Personal Access Token, run `vsce publish --yarn`.
