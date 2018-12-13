@@ -24,10 +24,14 @@
     "configuration": {
       "title": "Hypermerge",
       "properties": {
-        "hypermergefs.roots": {
-          "type": "array",
-          "default": [],
-          "description": "A list of hypermerge URLs to use as roots in the browser."
+        "hypermergefs.sortOrder": {
+          "type": "string",
+					"enum": [
+							"Title (Not Implemented)",
+							"Key"
+          ],
+          "default": "Key",
+          "description": "Sorting order for documents in the HypermergeFS tree."
         },
         "hypermergefs.debug": {
           "type": "string",
@@ -111,7 +115,6 @@
       "activitybar": [
         {
           "id": "hypermergeDetails",
-          "when": "resourceScheme == hypermerge",
           "title": "Hypermerge",
           "icon": "resources/logo.svg"
         }

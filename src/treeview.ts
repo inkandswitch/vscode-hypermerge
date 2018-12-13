@@ -5,6 +5,11 @@ const clipboardy = require("clipboardy");
 
 export type HypermergeNodeKey = string;
 
+export enum SortOrder {
+  Title,
+  Key
+} 
+
 interface RootDetails {
   user: Set<string>;
   workspace: Set<string>;
@@ -20,8 +25,11 @@ export class HypermergeTreeDataProvider
     HypermergeNodeKey | undefined
   > = this._onDidChangeTreeData.event;
 
+  private sortOrder: SortOrder;
+
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper;
+    this.sortOrder = SortOrder.Title
 
     this.hypermergeWrapper.addListener("update", (uri, doc) => {
       const details = interpretHypermergeUri(uri);
@@ -35,6 +43,11 @@ export class HypermergeTreeDataProvider
       this.treeItemCache.set(docId, doc);
       this._onDidChangeTreeData.fire(uri.toString());
     });
+    
+  }
+
+  public updateSortOrder(sortOrder: SortOrder) {
+    this.sortOrder = sortOrder
   }
 
   public refresh(): any {
@@ -110,7 +123,7 @@ export class HypermergeTreeDataProvider
               .map(id => "hypermerge:/" + id)
               .sort()
           ),
-        5000
+        1000 // XXX OH GOD FIX THIS SOON
       );
     });
   }
@@ -169,26 +182,36 @@ export class HypermergeExplorer {
   // TODO:
   // better error reporting on invalid json
   private hypermergeViewer: vscode.TreeView<HypermergeNodeKey>;
+  private treeDataProvider: HypermergeTreeDataProvider
 
   constructor(
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper
   ) {
-    const treeDataProvider = new HypermergeTreeDataProvider(hypermergeWrapper);
+    // XXX disposable
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration("hypermergefs.sortOrder")) {
+        this.updateSortConfig()
+      }
+    })
+
+    this.updateSortConfig()
+
+    this.treeDataProvider = new HypermergeTreeDataProvider(hypermergeWrapper);
 
     this.hypermergeViewer = vscode.window.createTreeView("hypermergeExplorer", {
-      treeDataProvider
+      treeDataProvider: this.treeDataProvider
     });
 
     vscode.commands.registerCommand("hypermergeExplorer.refresh", () =>
-      treeDataProvider.refresh()
+    this.treeDataProvider.refresh()
     );
 
     vscode.commands.registerCommand(
       "hypermergeExplorer.open",
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
-          treeDataProvider.refresh();
+          this.treeDataProvider.refresh();
           vscode.workspace.openTextDocument(vscode.Uri.parse(uriString));
         }
       }
@@ -197,7 +220,7 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri();
       if (uri) {
-        treeDataProvider.refresh();
+        this.treeDataProvider.refresh();
       }
     });
 
@@ -208,7 +231,7 @@ export class HypermergeExplorer {
       });
       if (uriString) {
         hypermergeWrapper.openDocumentUri(vscode.Uri.parse(uriString));
-        treeDataProvider.refresh();
+        this.treeDataProvider.refresh();
       }
     });
 
@@ -240,7 +263,7 @@ export class HypermergeExplorer {
 
         const uriString = newUrl.toString();
         if (uriString) {
-          treeDataProvider.refresh();
+          this.treeDataProvider.refresh();
         }
       }
     );
@@ -257,7 +280,7 @@ export class HypermergeExplorer {
 
         const uriString = newUrl.toString();
         if (uriString) {
-          treeDataProvider.refresh();
+          this.treeDataProvider.refresh();
         }
       }
     );
@@ -265,6 +288,19 @@ export class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
       this.reveal()
     );
+  }
+
+  updateSortConfig() {
+    const newSort = vscode.workspace
+          .getConfiguration("hypermergefs")
+          .get<string>("sortOrder", "")
+    const sortEnum = SortOrder[newSort]
+    if (!sortEnum) { 
+      console.log("Bad sort order passed to config")
+      return
+    }
+    this.treeDataProvider.updateSortOrder(sortEnum)
+    this.treeDataProvider.refresh()
   }
 
   validateURL(input: string) {
