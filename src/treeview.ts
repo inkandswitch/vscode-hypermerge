@@ -8,7 +8,7 @@ export type HypermergeNodeKey = string;
 export enum SortOrder {
   Title,
   Key
-} 
+}
 
 interface RootDetails {
   user: Set<string>;
@@ -43,7 +43,7 @@ export class HypermergeTreeDataProvider
       this.treeItemCache.set(docId, doc);
       this._onDidChangeTreeData.fire(uri.toString());
     });
-    
+
   }
 
   public updateSortOrder(sortOrder: SortOrder) {
@@ -188,6 +188,9 @@ export class HypermergeExplorer {
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper
   ) {
+
+    this.treeDataProvider = new HypermergeTreeDataProvider(hypermergeWrapper);
+
     // XXX disposable
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration("hypermergefs.sortOrder")) {
@@ -197,14 +200,12 @@ export class HypermergeExplorer {
 
     this.updateSortConfig()
 
-    this.treeDataProvider = new HypermergeTreeDataProvider(hypermergeWrapper);
-
     this.hypermergeViewer = vscode.window.createTreeView("hypermergeExplorer", {
       treeDataProvider: this.treeDataProvider
     });
 
     vscode.commands.registerCommand("hypermergeExplorer.refresh", () =>
-    this.treeDataProvider.refresh()
+      this.treeDataProvider.refresh()
     );
 
     vscode.commands.registerCommand(
@@ -292,10 +293,10 @@ export class HypermergeExplorer {
 
   updateSortConfig() {
     const newSort = vscode.workspace
-          .getConfiguration("hypermergefs")
-          .get<string>("sortOrder", "")
+      .getConfiguration("hypermergefs")
+      .get<string>("sortOrder", "")
     const sortEnum = SortOrder[newSort]
-    if (!sortEnum) { 
+    if (!sortEnum) {
       console.log("Bad sort order passed to config")
       return
     }

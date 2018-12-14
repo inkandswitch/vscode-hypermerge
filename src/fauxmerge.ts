@@ -73,7 +73,8 @@ export class HypermergeWrapper extends EventEmitter {
     const id = docId;
     const h = this.handles;
     return new Promise((resolve, reject) => {
-      const subDoc = doc => resolve(this.resolveSubDocument(doc, keyPath));
+      const subDoc = doc =>
+        resolve(this.resolveSubDocument(doc, keyPath));
       const update = doc => this.emit("update", uri, doc);
       if (history) {
         this.repo.materialize(id, history, subDoc);
