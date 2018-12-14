@@ -130,12 +130,12 @@
       "hypermergeDetails": [
         {
           "id": "hypermergeMetadata",
-          "when": "resourceScheme == hypermerge",
+          "when": "isHypermerge",
           "name": "Metadata"
         },
         {
           "id": "hypermergeHistory",
-          "when": "resourceScheme == hypermerge",
+          "when": "isHypermerge",
           "name": "History"
         }
       ]

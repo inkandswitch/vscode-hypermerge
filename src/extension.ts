@@ -29,6 +29,12 @@ export function activate(context: vscode.ExtensionContext) {
       isCaseSensitive: true
     }),
 
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+      const isHypermerge = editor && editor.document.uri.scheme === "hypermerge"
+
+      vscode.commands.executeCommand('setContext', 'isHypermerge', isHypermerge)
+    }),
+
     vscode.workspace.onDidOpenTextDocument(document => {
       if (document.uri.scheme === "hypermerge") {
         if (JSON.parse(document.getText())) {
