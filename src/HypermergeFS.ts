@@ -3,8 +3,9 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper } from "./fauxmerge";
 
-export class HypermergeFS implements vscode.FileSystemProvider {
+export default class HypermergeFS implements vscode.FileSystemProvider {
   hypermerge: HypermergeWrapper;
+
   constructor(hypermergeWrapper: HypermergeWrapper) {
     this.hypermerge = hypermergeWrapper;
 
@@ -108,7 +109,7 @@ export class HypermergeFS implements vscode.FileSystemProvider {
 
   watch(resource: vscode.Uri, opts): vscode.Disposable {
     // ignore, fires for all changes...
-    return new vscode.Disposable(() => {});
+    return new vscode.Disposable(() => { });
   }
 
   private _fireSoon(...events: vscode.FileChangeEvent[]): void {

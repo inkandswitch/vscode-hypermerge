@@ -4,17 +4,18 @@ import { URL } from "url";
 
 export type HypermergeNodeKey = string;
 
-
 export enum SortOrder {
   Title,
   Key
 }
 
-export default class HypermergeTreeDataProvider
+export default class DocumentTreeProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
+
   private _onDidChangeTreeData: vscode.EventEmitter<
     HypermergeNodeKey | undefined
   > = new vscode.EventEmitter<HypermergeNodeKey | undefined>();
+
   readonly onDidChangeTreeData: vscode.Event<
     HypermergeNodeKey | undefined
   > = this._onDidChangeTreeData.event;

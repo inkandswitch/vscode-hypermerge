@@ -1,13 +1,13 @@
 "use strict";
 import * as vscode from "vscode";
 import DebugManager from "./DebugManager";
-import { HypermergeFS } from "./fileSystemProvider";
+import HypermergeFS from "./HypermergeFS";
 import HypermergeExplorer from "./HypermergeExplorer";
-import { HypermergeViewContainer } from "./details";
+import DetailsViewContainer from "./DetailsViewContainer";
 import { HypermergeWrapper } from "./fauxmerge";
 import HypermergeUriHandler from "./HypermergeUriHandler";
 import HypermergeDocumentLinkProvider from "./DocumentLinkProvider";
-import HypermergeDiagnosticCollector from "./diagnosticCollector";
+import DiagnosticCollector from "./DiagnosticCollector";
 
 export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel("Hypermerge");
@@ -59,9 +59,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // self-registers
-  new HypermergeDiagnosticCollector(context, hypermergeWrapper);
+  new DiagnosticCollector(context, hypermergeWrapper);
   new HypermergeExplorer(context, hypermergeWrapper);
-  new HypermergeViewContainer(context, hypermergeWrapper);
+  new DetailsViewContainer(context, hypermergeWrapper);
 
   return {
     repo: hypermergeWrapper.repo,

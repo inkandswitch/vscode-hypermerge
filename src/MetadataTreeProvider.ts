@@ -1,15 +1,15 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
 
-export type HypermergeHistoryKey = string;
+export type HypermergeMetadataKey = string;
 
-export class HypermergeHistoryTreeDataProvider
-  implements vscode.TreeDataProvider<HypermergeHistoryKey> {
+export default class MetadataTreeProvider
+  implements vscode.TreeDataProvider<HypermergeMetadataKey> {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    HypermergeHistoryKey | undefined
-  > = new vscode.EventEmitter<HypermergeHistoryKey | undefined>();
+    HypermergeMetadataKey | undefined
+  > = new vscode.EventEmitter<HypermergeMetadataKey | undefined>();
   readonly onDidChangeTreeData: vscode.Event<
-    HypermergeHistoryKey | undefined
+    HypermergeMetadataKey | undefined
   > = this._onDidChangeTreeData.event;
 
   private activeDocumentUri: vscode.Uri | undefined;
@@ -43,30 +43,42 @@ export class HypermergeHistoryTreeDataProvider
     }
   }
 
-  public refresh(key?: HypermergeHistoryKey): any {
+  public refresh(key?: HypermergeMetadataKey): any {
     this._onDidChangeTreeData.fire(key);
   }
 
-  public getTreeItem(element: HypermergeHistoryKey): vscode.TreeItem {
+  public getTreeItem(element: HypermergeMetadataKey): vscode.TreeItem {
     const collapsibleState = vscode.TreeItemCollapsibleState.None;
 
+    // Make sure we're in a valid hypermerge document.
     if (!this.activeDocumentUri) {
-      console.log("How can we be here?");
-      return { label: "No open hypermerge doc " };
+      return { label: "no active hypermerge doc" };
+    }
+    const details = interpretHypermergeUri(this.activeDocumentUri);
+    if (!details) {
+      return { label: "bad URI" };
     }
 
-    const resourceUri = this.activeDocumentUri.with({
-      query: "history=" + element
-    });
+    // Create an array of results.
+    const { docId = "" } = details;
+    if (element === "actor") {
+      const meta = this.hypermergeWrapper.repo.meta(docId)!;
+      return {
+        label: "Local Actor: " + meta.actor,
+        collapsibleState
+      };
+    }
+    if (element === "clocks") {
+      return {
+        label: "Current Vector Clock",
+        collapsibleState: vscode.TreeItemCollapsibleState.Expanded
+      };
+    }
+
+    // elsewise we have a clock entry
     return {
-      label: "history=" + element,
-      resourceUri,
-      collapsibleState,
-      command: {
-        command: "vscode.open",
-        arguments: [resourceUri],
-        title: "Open Hypermerge Document"
-      }
+      label: element,
+      collapsibleState
     };
   }
 
@@ -81,13 +93,8 @@ export class HypermergeHistoryTreeDataProvider
   }
 
   public getChildren(
-    element?: HypermergeHistoryKey
-  ): HypermergeHistoryKey[] | Thenable<HypermergeHistoryKey[]> {
-    // History is flat -- only return children for the root node
-    if (element) {
-      return [];
-    }
-
+    element?: HypermergeMetadataKey
+  ): HypermergeMetadataKey[] | Thenable<HypermergeMetadataKey[]> {
     // Make sure we're in a valid hypermerge document.
     if (!this.activeDocumentUri) {
       return ["no active hypermerge doc"];
@@ -99,13 +106,22 @@ export class HypermergeHistoryTreeDataProvider
 
     // Create an array of results.
     const { docId = "" } = details;
+
     const meta = this.hypermergeWrapper.repo.meta(docId)!;
-    const n = meta.history;
-    const history = [...Array(n).keys()].reverse().map(i => (i + 1).toString());
-    return history;
+
+    if (element === "clocks") {
+      const clock = meta.clock;
+      return Object.entries(clock).map(
+        ([key, value]) => `[${key.slice(0, 5)}]: ${value}`
+      );
+    }
+
+    return ["actor", "clocks"];
   }
 
-  public getParent(element: HypermergeHistoryKey): HypermergeHistoryKey | null {
+  public getParent(
+    element: HypermergeMetadataKey
+  ): HypermergeMetadataKey | null {
     // there isn't necessarily a parent for a particular node in our system..
     // or at least not the way i'm currently modeling it
     // XX: the node key should arguably be a path of some kind?

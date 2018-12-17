@@ -1,17 +1,15 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper } from "./fauxmerge";
 
-import { HypermergeHistoryTreeDataProvider } from "./history";
-import { HypermergeMetadataTreeDataProvider } from "./metadata";
+import HistoryTreeProvider from "./HistoryTreeProvider";
+import MetadataTreeProvider from "./MetadataTreeProvider";
 
-export class HypermergeViewContainer {
-  private treeDataProvider: HypermergeHistoryTreeDataProvider;
-
+export default class DetailsViewContainer {
   constructor(
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper
   ) {
-    const metadataDataProvider = new HypermergeMetadataTreeDataProvider(
+    const metadataDataProvider = new MetadataTreeProvider(
       hypermergeWrapper
     );
 
@@ -19,7 +17,7 @@ export class HypermergeViewContainer {
       treeDataProvider: metadataDataProvider
     });
 
-    const historyDataProvider = new HypermergeHistoryTreeDataProvider(
+    const historyDataProvider = new HistoryTreeProvider(
       hypermergeWrapper
     );
 

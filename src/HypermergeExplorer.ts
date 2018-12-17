@@ -1,20 +1,20 @@
 import * as vscode from "vscode";
 import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
-import HypermergeTreeDataProvider, { SortOrder, HypermergeNodeKey } from "./HypermergeTreeDataProvider";
+import DocumentTreeProvider, { SortOrder, HypermergeNodeKey } from "./DocumentTreeProvider";
 const clipboardy = require("clipboardy");
 
 export default class HypermergeExplorer {
   // TODO:
   // better error reporting on invalid json
   private hypermergeViewer: vscode.TreeView<HypermergeNodeKey>;
-  private treeDataProvider: HypermergeTreeDataProvider
+  private treeDataProvider: DocumentTreeProvider
 
   constructor(
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper
   ) {
 
-    this.treeDataProvider = new HypermergeTreeDataProvider(hypermergeWrapper);
+    this.treeDataProvider = new DocumentTreeProvider(hypermergeWrapper);
 
     // XXX disposable
     vscode.workspace.onDidChangeConfiguration(e => {
