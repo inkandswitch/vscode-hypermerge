@@ -2,7 +2,7 @@
 import * as vscode from "vscode";
 import DebugManager from "./DebugManager";
 import { HypermergeFS } from "./fileSystemProvider";
-import { HypermergeExplorer } from "./treeview";
+import HypermergeExplorer from "./HypermergeExplorer";
 import { HypermergeViewContainer } from "./details";
 import { HypermergeWrapper } from "./fauxmerge";
 import HypermergeUriHandler from "./HypermergeUriHandler";
