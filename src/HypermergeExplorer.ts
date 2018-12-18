@@ -40,6 +40,7 @@ export default class HypermergeExplorer {
           this.treeDataProvider.refresh();
           vscode.workspace.openTextDocument(vscode.Uri.parse(uriString))
             .then(doc => vscode.window.showTextDocument(doc))
+            .then(() => { this.reveal() })
         }
       }
     );
