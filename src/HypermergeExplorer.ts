@@ -38,9 +38,7 @@ export default class HypermergeExplorer {
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
           this.treeDataProvider.refresh();
-          vscode.workspace.openTextDocument(vscode.Uri.parse(uriString))
-            .then(doc => vscode.window.showTextDocument(doc))
-            .then(() => { this.reveal() })
+          this.show(vscode.Uri.parse(uriString))
         }
       }
     );
@@ -49,6 +47,7 @@ export default class HypermergeExplorer {
       const uri = await hypermergeWrapper.createDocumentUri();
       if (uri) {
         this.treeDataProvider.refresh();
+        this.show(uri)
       }
     });
 
@@ -58,8 +57,11 @@ export default class HypermergeExplorer {
         validateInput: this.validateURL
       });
       if (uriString) {
-        hypermergeWrapper.openDocumentUri(vscode.Uri.parse(uriString));
+        // TODO: doesn't open to the subdoc e.g. `/Source.elm`
+        const parsedUri = vscode.Uri.parse(uriString)
         this.treeDataProvider.refresh();
+        hypermergeWrapper.openDocumentUri(parsedUri)
+          .then(() => this.show(parsedUri))
       }
     });
 
@@ -146,6 +148,13 @@ export default class HypermergeExplorer {
       return "invalid format";
     }
     return ""; // we can return a hint string if it's invalid
+  }
+
+  private show(uri: vscode.Uri): Thenable<void> {
+    return vscode.workspace.openTextDocument(uri)
+      .then(doc => vscode.window.showTextDocument(doc))
+      .then(() => { this.reveal() }); // TODO: weave this into the thenable chain
+
   }
 
   private reveal(): Thenable<void> | null {
