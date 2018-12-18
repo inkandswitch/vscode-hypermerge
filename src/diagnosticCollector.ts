@@ -39,8 +39,7 @@ export default class DiagnosticCollector {
               return new vscode.Diagnostic(range, message, severity);
             });
 
-            const targetUri = uri.with({ path: uri.path });
-            diagnosticCollection.set(targetUri, diagnostics);
+            diagnosticCollection.set(uri, diagnostics);
           }
         }
       } catch (e) {
