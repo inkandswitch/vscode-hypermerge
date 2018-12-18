@@ -38,7 +38,8 @@ export default class HypermergeExplorer {
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
           this.treeDataProvider.refresh();
-          vscode.workspace.openTextDocument(vscode.Uri.parse(uriString));
+          vscode.workspace.openTextDocument(vscode.Uri.parse(uriString))
+            .then(doc => vscode.window.showTextDocument(doc))
         }
       }
     );
