@@ -110,16 +110,14 @@ export default class DocumentTreeProvider
 
   private roots(): Thenable<HypermergeNodeKey[]> {
     return new Promise(resolve => {
-      setTimeout(
-        () =>
-          resolve(
-            this.hypermergeWrapper.repo.back.meta
-              .docs()
-              .map(id => "hypermerge:/" + id)
-              .sort()
-          ),
-        1000 // XXX OH GOD FIX THIS SOON
-      );
+      const meta = this.hypermergeWrapper.repo.back.meta
+      meta.readyQ.push(() => {
+        resolve(
+          meta.docs()
+          .map(id => "hypermerge:/" + id)
+          .sort()
+        )
+      })
     });
   }
 
