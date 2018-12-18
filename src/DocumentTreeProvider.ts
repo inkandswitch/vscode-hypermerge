@@ -111,11 +111,11 @@ export default class DocumentTreeProvider
   private roots(): Thenable<HypermergeNodeKey[]> {
     return new Promise(resolve => {
       const meta = this.hypermergeWrapper.repo.back.meta
-      meta.readyQ.push(() => {
+      meta["readyQ"].push(() => {
         resolve(
           meta.docs()
-          .map(id => "hypermerge:/" + id)
-          .sort()
+            .map(id => "hypermerge:/" + id)
+            .sort()
         )
       })
     });
