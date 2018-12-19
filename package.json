@@ -26,9 +26,9 @@
       "properties": {
         "hypermergefs.sortOrder": {
           "type": "string",
-					"enum": [
-							"Title (Not Implemented)",
-							"Key"
+          "enum": [
+            "Title (Not Implemented)",
+            "Key"
           ],
           "default": "Key",
           "description": "Sorting order for documents in the HypermergeFS tree."
@@ -163,6 +163,7 @@
     "discovery-cloud-client": "https://github.com/orionz/discovery-cloud-client",
     "discovery-swarm": "^5.1.2",
     "hypermerge": "github:automerge/hypermerge#fork",
+    "odiff": "github:inkandswitch/odiff",
     "pump": "^3.0.0",
     "random-access-file": "^2.0.1",
     "random-access-memory": "^3.0.0",

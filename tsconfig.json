@@ -4,9 +4,16 @@
     "module": "commonjs",
     "target": "es6",
     "outDir": "out",
-    "lib": ["es6", "es2017.object"],
+    "lib": [
+      "es6",
+      "es2017.object"
+    ],
     "sourceMap": true,
-    "rootDir": "."
+    "rootDir": ".",
+    "esModuleInterop": true,
   },
-  "exclude": ["node_modules", ".vscode-test"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test"
+  ]
 }

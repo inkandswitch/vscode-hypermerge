@@ -5,7 +5,7 @@ const raf = require("random-access-file");
 
 const DiscoverySwarm = require("discovery-swarm");
 import { EventEmitter } from "events";
-import { DeepDiff } from "deep-diff";
+import * as Diff from "./Diff";
 
 interface HypermergeNodeDetails {
   docId: string;
@@ -128,22 +128,18 @@ export class HypermergeWrapper extends EventEmitter {
 
     this.repo.change(docId, doc => {
       let content = doc;
-      let key;
+      let key: string | undefined;
       while ((key = keyPath.shift())) {
         // special case to assign leaf values :(
         // this needs more consideration
         if (!(content[key] instanceof Object) && keyPath.length === 0) {
-          if (typeof content[key] === "string") {
-            content[key] = newDoc;
-          } else {
-            content[key] = newDoc;
-          }
+          content[key] = newDoc;
           return;
         }
         content = content[key];
       }
 
-      DeepDiff.applyDiff(content, newDoc);
+      Diff.apply(content, newDoc)
     });
   }
 }
