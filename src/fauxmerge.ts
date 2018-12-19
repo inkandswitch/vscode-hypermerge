@@ -75,15 +75,17 @@ export class HypermergeWrapper extends EventEmitter {
     return new Promise((resolve, reject) => {
       const subDoc = doc =>
         resolve(this.resolveSubDocument(doc, keyPath));
+      const progressCb = (event) => {
+        console.log("Progress")
+        console.log(event)
+      }
       const update = doc => this.emit("update", uri, doc);
       if (history) {
         this.repo.materialize(id, history, subDoc);
       } else {
-        h[id] = h[id] || this.repo.watch(id, update);
-        h[id].subscribeProgress((event) => {
-          console.log("Progress")
-          console.log(event)
-        })
+        h[id] = h[id] || this.repo.open(id)
+                            .subscribe(update)
+                            .subscribeProgress(progressCb);
         this.repo.doc(id, subDoc);
       }
     });
