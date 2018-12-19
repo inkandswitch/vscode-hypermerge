@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { Handle, Repo } from "hypermerge";
+import { Handle, Repo, ProgressListener } from "hypermerge";
 const raf = require("random-access-file");
 
 const DiscoverySwarm = require("discovery-swarm");
@@ -80,6 +80,10 @@ export class HypermergeWrapper extends EventEmitter {
         this.repo.materialize(id, history, subDoc);
       } else {
         h[id] = h[id] || this.repo.watch(id, update);
+        h[id].subscribeProgress((event) => {
+          console.log("Progress")
+          console.log(event)
+        })
         this.repo.doc(id, subDoc);
       }
     });
