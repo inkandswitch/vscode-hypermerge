@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { Handle, Repo, ProgressListener } from "hypermerge";
+import { Handle, Repo } from "hypermerge";
 const raf = require("random-access-file");
 
 const DiscoverySwarm = require("discovery-swarm");
