@@ -22,6 +22,8 @@ export default class DiagnosticCollector {
           for (const [target, items] of Object.entries(
             hypermergeFsDiagnostics
           )) {
+            if (!Array.isArray(items)) return
+
             const diagnostics = (items as any[]).map(item => {
               const severity =
                 item.severity.toLowerCase() === "warning"
