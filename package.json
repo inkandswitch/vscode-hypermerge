@@ -16,6 +16,7 @@
   ],
   "activationEvents": [
     "onFileSystem:hypermerge",
+    "onFileSystem:hypercore",
     "onView:hypermergeExplorer",
     "onUri"
   ],

@@ -2,6 +2,7 @@
 import * as vscode from "vscode";
 import DebugManager from "./DebugManager";
 import HypermergeFS from "./HypermergeFS";
+import HypercoreFS from "./HypercoreFS";
 import HypermergeExplorer from "./HypermergeExplorer";
 import DetailsViewContainer from "./DetailsViewContainer";
 import { HypermergeWrapper } from "./fauxmerge";
@@ -19,15 +20,24 @@ export function activate(context: vscode.ExtensionContext) {
   const hypermergeWrapper = new HypermergeWrapper();
 
 
-  const hypermergeFs = new HypermergeFS(hypermergeWrapper);
-
   context.subscriptions.push(
     output,
     debugManager,
 
-    vscode.workspace.registerFileSystemProvider("hypermerge", hypermergeFs, {
-      isCaseSensitive: true
-    }),
+    vscode.workspace.registerFileSystemProvider("hypermerge",
+      new HypermergeFS(hypermergeWrapper),
+      {
+        isCaseSensitive: true
+      }
+    ),
+
+    vscode.workspace.registerFileSystemProvider("hypercore",
+      new HypercoreFS(hypermergeWrapper),
+      {
+        isCaseSensitive: true,
+        isReadonly: true,
+      }
+    ),
 
     vscode.window.onDidChangeActiveTextEditor(editor => {
       const isHypermerge = editor && editor.document.uri.scheme === "hypermerge"
