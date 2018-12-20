@@ -83,7 +83,7 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
     this._onDidChangeTreeData.fire(key);
   }
 
-  public getTreeItem(node: Node): TreeItem {
+  public getTreeItem(node: Node): TreeItem | Thenable<TreeItem> {
     const State = TreeItemCollapsibleState
 
     switch (node.type) {
@@ -108,20 +108,30 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
           id: `Blocks/${node.actor.id}`
         }
 
-      case "Block":
+      case "Block": {
         const resourceUri = Uri.parse(`hypercore:/${node.actor.id}/${node.index}`)
-        return {
-          label: "Block " + node.index,
-          description: node.actor.feed.has(node.index) ? "✓" : "Missing",
-          collapsibleState: State.None,
-          id: `Block/${node.actor.feed.id.toString('hex')}/${node.index}`,
-          resourceUri,
-          command: {
-            command: "vscode.open",
-            arguments: [resourceUri],
-            title: "View contents"
-          }
-        }
+        const isDownloaded = node.actor.feed.has(node.index)
+
+        return blockSize(node.actor.feed, node.index)
+          .catch(_ => 0)
+          .then(bytes => {
+            const size = bytes ? prettyBytes(bytes) : ""
+
+            return {
+              label: "Block " + node.index,
+              collapsibleState: State.None,
+              description: isDownloaded ? `✓ ${size}` : "Missing",
+              id: `Block/${node.actor.id}/${node.index}`,
+              resourceUri,
+              command: {
+                command: "vscode.open",
+                arguments: [resourceUri],
+                title: "View contents"
+              }
+            }
+          })
+
+      }
     }
   }
 
@@ -179,6 +189,16 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
     // XX: the node key should arguably be a path of some kind?
     return null;
   }
+}
+
+function blockSize(feed: any, index: number): Promise<number> {
+  return new Promise((res, rej) => {
+    feed._storage.dataOffset(index, [], (err: any, offset: number, size: number) => {
+      if (err) return rej(err)
+      res(size)
+    })
+  })
+
 }
 
 function error(message: string): ErrorNode {
