@@ -62,7 +62,13 @@ export default class DocumentTreeProvider
 
     let { docId, keyPath } = details;
 
-    const content = this.treeItemCache.get(docId);
+    let content = this.treeItemCache.get(docId);
+    keyPath.forEach((key) => {
+      if (!content.hasOwnProperty(key)) {
+        throw new Error("Invalid path in hypermerge URL.");
+      }
+      content = content[key]
+    })
 
     // Handle the case where we haven't loaded any content yet.
     // TODO: Add support to show loading progress.

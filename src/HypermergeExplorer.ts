@@ -129,6 +129,9 @@ export default class HypermergeExplorer {
       console.log("Bad sort order passed to config")
       return
     }
+    if (!this.treeDataProvider) {
+      return // this means there's probably a race condition on first startup
+    }
     this.treeDataProvider.updateSortOrder(sortEnum)
     this.treeDataProvider.refresh()
   }

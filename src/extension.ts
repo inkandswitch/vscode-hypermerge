@@ -47,8 +47,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.workspace.onDidOpenTextDocument(document => {
       if (document.uri.scheme === "hypermerge") {
-        if (JSON.parse(document.getText())) {
+        try {
+          JSON.parse(document.getText())
           (vscode.languages as any).setTextDocumentLanguage(document, "json");
+        }
+        catch (e) {
+          // not JSON, which is fine
+          // really, we should do something cheaper than parse the whole file here
         }
       }
     }),
