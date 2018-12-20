@@ -131,17 +131,14 @@
       "hypermergeDetails": [
         {
           "id": "hypermergeMetadata",
-          "when": "isHypermerge",
           "name": "Metadata"
         },
         {
           "id": "hypermergeFeeds",
-          "when": "isHypermerge",
           "name": "Feeds"
         },
         {
           "id": "hypermergeHistory",
-          "when": "isHypermerge",
           "name": "History"
         }
       ]

@@ -69,11 +69,12 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
   }
 
   private onActiveEditorChanged(): void {
-    if (
-      window.activeTextEditor &&
-      window.activeTextEditor.document.uri.scheme === "hypermerge"
-    ) {
-      this.activeDocumentUri = window.activeTextEditor.document.uri;
+    const { activeTextEditor } = window
+
+    if (!activeTextEditor) return
+
+    if (activeTextEditor.document.uri.scheme === "hypermerge") {
+      this.activeDocumentUri = activeTextEditor.document.uri;
       this.refresh();
     }
   }
