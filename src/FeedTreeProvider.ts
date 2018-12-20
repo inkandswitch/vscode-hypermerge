@@ -37,7 +37,13 @@ interface PeersNode {
 interface PeerNode {
   type: "Peer"
   actor: Actor
+  index: number
   peer: any
+}
+
+interface InfoNode {
+  type: "Info"
+  info: TreeItem
 }
 
 export type Node =
@@ -47,6 +53,7 @@ export type Node =
   | BlockNode
   | PeersNode
   | PeerNode
+  | InfoNode
 
 export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposable {
 
@@ -149,7 +156,7 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
 
       case "Peers": {
         const { peers } = node.actor.feed
-        const connectedCount = peers.reduce((n, peer: any) => peer._closed ? n : n + 1, 0)
+        const connectedCount = peers.reduce((n, peer: any) => peer.stream.closed ? n : n + 1, 0)
 
         return {
           label: `${connectedCount} / ${peers.length} Peers`,
@@ -162,13 +169,24 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
         const { peer } = node
         const id = peer.remoteId ? peer.remoteId.toString('hex') : "Local"
         const tag = id.slice(0, 8)
+        const isOpen = !peer.stream.closed
+
+        const conn = connectionInfo(peer)
+        const description = join(
+          conn ? conn.type : "",
+          isOpen ? "✓" : "Closed"
+        )
 
         return {
           label: `Peer ${tag}`,
-          collapsibleState: State.None,
-          description: peer._closed ? "Closed" : "✓",
+          collapsibleState: isOpen ? State.Expanded : State.Collapsed,
+          description,
           id: `Peer/${node.actor.id}/${peer._index}`
         }
+      }
+
+      case "Info": {
+        return node.info
       }
     }
   }
@@ -213,7 +231,33 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
           .map((_, i) => blockNode(node.actor, i))
 
       case "Peers":
-        return node.actor.feed.peers.map(peer => peerNode(node.actor, peer))
+        return node.actor.feed.peers
+          .map((peer, i) => peerNode(node.actor, peer, i))
+
+      case "Peer": {
+        const conn = connectionInfo(node.peer)
+        if (!conn) return [infoNode({ label: "Connection info error" })]
+
+        return [
+          infoNode({ label: join("State:", conn.readyState) }),
+          infoNode({
+            label: join("Local:", conn.local.ip),
+            description: conn.local.port.toString()
+          }),
+          infoNode({
+            label: join("Remote:", conn.remote.ip),
+            description: conn.remote.port.toString()
+          }),
+          infoNode({
+            label: prettyBytes(conn.bytes.read),
+            description: "Received"
+          }),
+          infoNode({
+            label: prettyBytes(conn.bytes.written),
+            description: "Sent"
+          }),
+        ]
+      }
 
       default:
         return []
@@ -249,6 +293,42 @@ function blockNode(actor: Actor, index: number): BlockNode {
   return { type: "Block", actor, index }
 }
 
-function peerNode(actor: Actor, peer: any): PeerNode {
-  return { type: "Peer", actor, peer }
+function peerNode(actor: Actor, peer: any, index: number): PeerNode {
+  return { type: "Peer", actor, peer, index }
+}
+
+function infoNode(info: TreeItem): InfoNode {
+  return { type: "Info", info }
+}
+
+function connectionInfo(peer: any) {
+  try {
+    const conn = peer.stream.stream._readableState.pipes
+
+    if (!conn) return
+
+    return {
+      type: conn._handle.constructor.name,
+      readyState: conn.readyState,
+      local: {
+        ip: conn.localAddress,
+        port: conn.localPort,
+      },
+      remote: {
+        ip: conn.remoteAddress,
+        port: conn.remotePort,
+      },
+      bytes: {
+        read: conn.bytesRead,
+        written: conn.bytesWritten,
+      }
+    }
+  } catch (e) {
+    console.log("non-breaking connectionInfo error –", e)
+    return
+  }
+}
+
+function join(...items: any[]): string {
+  return items.filter(x => x != null && x != "").join(" ")
 }
