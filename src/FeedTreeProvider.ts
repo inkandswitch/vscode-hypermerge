@@ -109,7 +109,7 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
         }
 
       case "Block": {
-        const resourceUri = Uri.parse(`hypercore:/${node.actor.id}/${node.index}`)
+        const resourceUri = Uri.parse(`hypercore:/${node.actor.id}/${node.index}.json`)
         const isDownloaded = node.actor.feed.has(node.index)
 
         return blockSize(node.actor.feed, node.index)

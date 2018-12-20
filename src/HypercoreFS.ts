@@ -60,6 +60,14 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
     return new Promise((res, rej) => {
       (<any>actor.feed).get(blockIndex, { wait: false }, (err: Error | null, data?: Uint8Array) => {
         if (err) return rej(err)
+        if (!data) return rej(new Error("Missing data"))
+
+        try {
+          const obj = JSON.parse(data.toString())
+          data = Buffer.from(JSON.stringify(obj, undefined, 2))
+        } catch (e) {
+          // not JSON data. should be fine to just continue
+        }
 
         if (data) res(data)
       })
