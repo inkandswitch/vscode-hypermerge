@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (document.uri.scheme === "hypermerge") {
         try {
           JSON.parse(document.getText())
-          (vscode.languages as any).setTextDocumentLanguage(document, "json");
+            (vscode.languages as any).setTextDocumentLanguage(document, "json");
         }
         catch (e) {
           // not JSON, which is fine
@@ -70,13 +70,14 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    (vscode.window as any).registerUriHandler(new HypermergeUriHandler(output))
+    (vscode.window as any).registerUriHandler(new HypermergeUriHandler(output)),
+
+    new DetailsViewContainer(hypermergeWrapper)
   );
 
   // self-registers
   new DiagnosticCollector(context, hypermergeWrapper);
   new HypermergeExplorer(context, hypermergeWrapper);
-  new DetailsViewContainer(context, hypermergeWrapper);
 
   return {
     repo: hypermergeWrapper.repo,

@@ -4,10 +4,12 @@ import { HypermergeWrapper } from "./fauxmerge";
 import HistoryTreeProvider from "./HistoryTreeProvider";
 import MetadataTreeProvider from "./MetadataTreeProvider";
 import FeedTreeProvider from "./FeedTreeProvider";
+import DisposableCollection from "./DisposableCollection";
 
-export default class DetailsViewContainer {
+export default class DetailsViewContainer implements vscode.Disposable {
+  subscriptions = new DisposableCollection()
+
   constructor(
-    context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper
   ) {
     const metadataDataProvider = new MetadataTreeProvider(
@@ -28,8 +30,14 @@ export default class DetailsViewContainer {
 
 
     const feedDataProvider = new FeedTreeProvider(hypermergeWrapper);
-    vscode.window.createTreeView("hypermergeFeeds", {
+    const feedView = vscode.window.createTreeView("hypermergeFeeds", {
       treeDataProvider: feedDataProvider
     });
+
+    this.subscriptions.push(feedView, feedDataProvider)
+  }
+
+  dispose() {
+    this.subscriptions.dispose()
   }
 }

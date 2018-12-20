@@ -29,15 +29,32 @@ interface BlockNode {
   index: number
 }
 
+interface PeersNode {
+  type: "Peers"
+  actor: Actor
+}
 
-export type Node = ActorNode | ErrorNode | BlocksNode | BlockNode
+interface PeerNode {
+  type: "Peer"
+  actor: Actor
+  peer: any
+}
 
-export default class FeedTreeProvider implements TreeDataProvider<Node> {
+export type Node =
+  | ActorNode
+  | ErrorNode
+  | BlocksNode
+  | BlockNode
+  | PeersNode
+  | PeerNode
+
+export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposable {
 
   private _onDidChangeTreeData = new EventEmitter<Node | undefined>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private activeDocumentUri: Uri | undefined;
+  private interval: NodeJS.Timeout
 
   constructor(private hypermergeWrapper: HypermergeWrapper) {
 
@@ -47,15 +64,13 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
 
     this.onActiveEditorChanged(); // call it the first time on startup
 
-    // XXX looks like this might be broken
-    this.hypermergeWrapper.addListener("update", updatedDocumentUri => {
-      if (
-        this.activeDocumentUri &&
-        this.activeDocumentUri.toString() === updatedDocumentUri.toString()
-      ) {
-        this._onDidChangeTreeData.fire();
-      }
-    });
+    // Fairly hacky but it seems to work just fine.
+    // Feels like too much work to manage listeners for all this stuff.
+    this.interval = setInterval(() => this.refresh(), 2000)
+  }
+
+  public dispose() {
+    clearInterval(this.interval)
   }
 
   get activeDocId(): string | undefined {
@@ -130,7 +145,30 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
               }
             }
           })
+      }
 
+      case "Peers": {
+        const { peers } = node.actor.feed
+        const connectedCount = peers.reduce((n, peer: any) => peer._closed ? n : n + 1, 0)
+
+        return {
+          label: `${connectedCount} / ${peers.length} Peers`,
+          collapsibleState: State.Collapsed,
+          id: `Peers/${node.actor.id}`
+        }
+      }
+
+      case "Peer": {
+        const { peer } = node
+        const id = peer.remoteId ? peer.remoteId.toString('hex') : "Local"
+        const tag = id.slice(0, 8)
+
+        return {
+          label: `Peer ${tag}`,
+          collapsibleState: State.None,
+          description: peer._closed ? "Closed" : "✓",
+          id: `Peer/${node.actor.id}/${peer._index}`
+        }
       }
     }
   }
@@ -155,35 +193,34 @@ export default class FeedTreeProvider implements TreeDataProvider<Node> {
       const { repo } = this.hypermergeWrapper
       const back = repo.back.docs.get(docId)
 
-      if (!back) return [error("Could not find Doc")]
+      if (!back) return [errorNode("Could not find Doc")]
 
       const actors = repo.back.docActors(back)
 
-      return actors.map(actor)
+      return actors.map(actorNode)
     }
 
     switch (node.type) {
-      case "Error":
-        return []
-
       case "Actor":
         return [
           { type: "Blocks", actor: node.actor },
+          { type: "Peers", actor: node.actor },
         ]
 
       case "Blocks":
         return Array(node.actor.feed.length)
           .fill(0)
-          .map((_, i) => block(node.actor, i))
+          .map((_, i) => blockNode(node.actor, i))
 
-      case "Block":
+      case "Peers":
+        return node.actor.feed.peers.map(peer => peerNode(node.actor, peer))
+
+      default:
         return []
     }
   }
 
-  public getParent(
-    element: Node
-  ): Node | null {
+  public getParent(element: Node): Node | null {
     // there isn't necessarily a parent for a particular node in our system..
     // or at least not the way i'm currently modeling it
     // XX: the node key should arguably be a path of some kind?
@@ -198,17 +235,20 @@ function blockSize(feed: any, index: number): Promise<number> {
       res(size)
     })
   })
-
 }
 
-function error(message: string): ErrorNode {
+function errorNode(message: string): ErrorNode {
   return { type: "Error", message }
 }
 
-function actor(actor: Actor): ActorNode {
+function actorNode(actor: Actor): ActorNode {
   return { type: "Actor", actor }
 }
 
-function block(actor: Actor, index: number): BlockNode {
+function blockNode(actor: Actor, index: number): BlockNode {
   return { type: "Block", actor, index }
+}
+
+function peerNode(actor: Actor, peer: any): PeerNode {
+  return { type: "Peer", actor, peer }
 }

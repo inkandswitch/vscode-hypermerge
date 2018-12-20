@@ -1,16 +1,17 @@
 import { Disposable, OutputChannel, workspace } from "vscode";
 import Debug from "debug";
 import { format } from "util";
+import DisposableCollection from "./DisposableCollection";
 
 export default class DebugManager implements Disposable {
-  subscriptions: Disposable[] = []
+  subscriptions = new DisposableCollection()
 
   constructor(output: OutputChannel) {
     Debug.log = (str, ...args) => {
       output.appendLine(format(str, ...args));
     }
 
-    this.push(workspace.onDidChangeConfiguration(e => {
+    this.subscriptions.push(workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration("hypermergefs.debug")) {
         this.updateDebug()
       }
@@ -19,23 +20,15 @@ export default class DebugManager implements Disposable {
     this.updateDebug()
   }
 
+  dispose() {
+    this.subscriptions.dispose()
+  }
+
   updateDebug() {
     const setting = workspace
       .getConfiguration("hypermergefs")
       .get<string>("debug", "")
 
     Debug.enable(setting)
-  }
-
-  push(d: Disposable) {
-    this.subscriptions.push(d)
-  }
-
-  dispose() {
-    let item: Disposable | undefined
-
-    while (item = this.subscriptions.pop()) {
-      item.dispose()
-    }
   }
 }
