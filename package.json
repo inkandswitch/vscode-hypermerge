@@ -130,6 +130,10 @@
       ],
       "hypermergeDetails": [
         {
+          "id": "hypermergeExplorer",
+          "name": "HypermergeFS"
+        },
+        {
           "id": "hypermergeMetadata",
           "name": "Metadata"
         },
