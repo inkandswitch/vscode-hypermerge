@@ -52,6 +52,8 @@ export class HypermergeWrapper extends EventEmitter {
   constructor() {
     super();
 
+    (global as any).repo = this.repo;
+
     const stream = this.repo.stream;
     const id = this.repo.id;
     const hyperswarmwrapper = new DiscoverySwarm({ stream, id });
@@ -84,8 +86,8 @@ export class HypermergeWrapper extends EventEmitter {
         this.repo.materialize(id, history, subDoc);
       } else {
         h[id] = h[id] || this.repo.open(id)
-                            .subscribe(update)
-                            .subscribeProgress(progressCb);
+          .subscribe(update)
+          .subscribeProgress(progressCb);
         this.repo.doc(id, subDoc);
       }
     });

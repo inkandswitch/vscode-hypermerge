@@ -3,6 +3,7 @@ import { HypermergeWrapper } from "./fauxmerge";
 
 import HistoryTreeProvider from "./HistoryTreeProvider";
 import MetadataTreeProvider from "./MetadataTreeProvider";
+import FeedTreeProvider from "./FeedTreeProvider";
 
 export default class DetailsViewContainer {
   constructor(
@@ -23,6 +24,12 @@ export default class DetailsViewContainer {
 
     vscode.window.createTreeView("hypermergeHistory", {
       treeDataProvider: historyDataProvider
+    });
+
+
+    const feedDataProvider = new FeedTreeProvider(hypermergeWrapper);
+    vscode.window.createTreeView("hypermergeFeeds", {
+      treeDataProvider: feedDataProvider
     });
   }
 }
