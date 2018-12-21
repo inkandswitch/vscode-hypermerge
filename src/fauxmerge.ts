@@ -4,6 +4,8 @@ import { Handle, Repo } from "hypermerge";
 const raf = require("random-access-file");
 
 const DiscoverySwarm = require("discovery-swarm");
+const defaults = require('dat-swarm-defaults')
+
 import { EventEmitter } from "events";
 import * as Diff from "./Diff";
 
@@ -56,7 +58,7 @@ export class HypermergeWrapper extends EventEmitter {
 
     const stream = this.repo.stream;
     const id = this.repo.id;
-    const hyperswarmwrapper = new DiscoverySwarm({ stream, id });
+    const hyperswarmwrapper = new DiscoverySwarm(defaults({stream, id }));
     this.repo.replicate(hyperswarmwrapper);
   }
 
