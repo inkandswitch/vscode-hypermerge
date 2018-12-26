@@ -59,7 +59,7 @@ export class HypermergeWrapper extends EventEmitter {
 
     const stream = this.repo.stream;
     const id = this.repo.id;
-    const hyperswarmwrapper = new DiscoverySwarm(defaults({stream, id }));
+    const hyperswarmwrapper = new DiscoverySwarm(defaults({ stream, id, port: 0 }));
     this.repo.replicate(hyperswarmwrapper);
   }
 
