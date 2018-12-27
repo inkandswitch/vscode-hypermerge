@@ -307,6 +307,25 @@ function connectionInfo(peer: any) {
 
     if (!conn) return
 
+    if (conn._utp) {
+      return {
+        type: "UTP",
+        readyState: true,
+        local: {
+          ip: "localIP",
+          port: "localPort",
+        },
+        remote: {
+          ip: conn.remoteAddress,
+          port: conn.remotePort,
+        },
+        bytes: {
+          read: -1,
+          written: -1,
+        }
+      }
+    }
+
     return {
       type: conn._handle.constructor.name,
       readyState: conn.readyState,
