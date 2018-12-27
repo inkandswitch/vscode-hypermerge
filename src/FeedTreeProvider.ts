@@ -308,12 +308,13 @@ function connectionInfo(peer: any) {
     if (!conn) return
 
     if (conn._utp) {
+      const localAddress = conn._utp.address()
       return {
         type: "UTP",
         readyState: true,
         local: {
-          ip: "localIP",
-          port: "localPort",
+          ip: localAddress.address,
+          port: localAddress.port,
         },
         remote: {
           ip: conn.remoteAddress,
