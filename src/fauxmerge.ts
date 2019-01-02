@@ -44,7 +44,8 @@ export function interpretHypermergeUri(
   return null;
 }
 
-const path = process.env.HOME ? `${process.env.HOME}/.hypermergefs` : undefined;
+const homedir = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+const path = `${homedir}/.hypermergefs`;
 const storage = raf;
 
 export class HypermergeWrapper extends EventEmitter {
