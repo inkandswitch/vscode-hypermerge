@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { HypermergeWrapper } from "./fauxmerge";
+import { HypermergeWrapper } from "./HypermergeWrapper";
 
 import HistoryTreeProvider from "./HistoryTreeProvider";
 import MetadataTreeProvider from "./MetadataTreeProvider";

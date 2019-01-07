@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
+import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper";
 import { URL } from "url";
 
 export type HypermergeNodeKey = string;

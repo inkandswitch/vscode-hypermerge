@@ -5,7 +5,7 @@ import HypermergeFS from "./HypermergeFS";
 import HypercoreFS from "./HypercoreFS";
 import HypermergeExplorer from "./HypermergeExplorer";
 import DetailsViewContainer from "./DetailsViewContainer";
-import { HypermergeWrapper } from "./fauxmerge";
+import { HypermergeWrapper } from "./HypermergeWrapper";
 import HypermergeUriHandler from "./HypermergeUriHandler";
 import HypermergeDocumentLinkProvider from "./DocumentLinkProvider";
 import DiagnosticCollector from "./DiagnosticCollector";

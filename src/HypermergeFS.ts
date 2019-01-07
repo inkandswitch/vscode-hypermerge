@@ -1,7 +1,7 @@
 "use strict";
 
 import * as vscode from "vscode";
-import { HypermergeWrapper } from "./fauxmerge";
+import { HypermergeWrapper } from "./HypermergeWrapper";
 
 export default class HypermergeFS implements vscode.FileSystemProvider {
   hypermerge: HypermergeWrapper;

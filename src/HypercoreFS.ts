@@ -1,7 +1,7 @@
 "use strict";
 
 import * as vscode from "vscode";
-import { HypermergeWrapper } from "./fauxmerge";
+import { HypermergeWrapper } from "./HypermergeWrapper";
 import { RepoBackend } from "hypermerge";
 
 export default class HypercoreFS implements vscode.FileSystemProvider {

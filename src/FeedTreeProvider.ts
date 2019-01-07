@@ -4,7 +4,7 @@ import {
 } from "vscode";
 import prettyBytes from "pretty-bytes";
 
-import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
+import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper";
 import { Actor } from "hypermerge/dist/Actor";
 
 

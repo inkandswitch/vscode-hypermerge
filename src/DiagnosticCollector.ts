@@ -1,6 +1,6 @@
 "use strict";
 import * as vscode from "vscode";
-import { HypermergeWrapper } from "./fauxmerge";
+import { HypermergeWrapper } from "./HypermergeWrapper";
 
 export default class DiagnosticCollector {
   constructor(

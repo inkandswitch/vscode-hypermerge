@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { HypermergeWrapper, interpretHypermergeUri } from "./fauxmerge";
+import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper";
 import DocumentTreeProvider, { SortOrder, HypermergeNodeKey } from "./DocumentTreeProvider";
 const clipboardy = require("clipboardy");
 
@@ -60,8 +60,24 @@ export default class HypermergeExplorer {
         // TODO: doesn't open to the subdoc e.g. `/Source.elm`
         const parsedUri = vscode.Uri.parse(uriString)
         this.treeDataProvider.refresh();
-        hypermergeWrapper.openDocumentUri(parsedUri)
-          .then(() => this.show(parsedUri))
+
+        const loadUri = (uri: vscode.Uri) => hypermergeWrapper.openDocumentUri(uri)
+            .then(() => this.show(uri))
+
+        if (parsedUri.scheme === "realm") {
+          const bits = uriString.match("realm://(.+?)/(.+?)$")
+          if (!(bits && bits.length == 3)) {
+            throw new Error("invalid Realm URL")
+          }
+          const [_, codeDoc, dataDoc] = bits
+
+          // TODO: show these side-by-side
+          loadUri(vscode.Uri.parse("hypermerge:/" + codeDoc))
+          loadUri(vscode.Uri.parse("hypermerge:/" + dataDoc))
+        }
+        else {
+          loadUri(parsedUri)
+        }
       }
     });
 
@@ -144,7 +160,7 @@ export default class HypermergeExplorer {
     } catch {
       return "invalid URL";
     }
-    if (url.scheme !== "hypermerge") {
+    if (!(url.scheme == "hypermerge" || url.scheme == "realm")) {
       return "invalid scheme -- must be a hypermerge URL";
     }
     if (url.path === "") {
