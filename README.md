@@ -23,3 +23,20 @@ Hypermerge can open arbitrary hypermerge files and treat them as both JSON and n
 ## Publishing a Release
 
 You'll want to [follow the instructions](https://code.visualstudio.com/docs/extensions/publish-extension) in the VSCE user manual, but to publish after setting up your Personal Access Token, run `vsce publish --yarn`.
+
+## UTP-native binary dependency
+
+One of the trickier requirements of this project is a C library called `utp-native`. UTP is a high performance protocol similar to TCP but carried over UDP originally designed to improve Bittorrent bandwidth sharing. The `utp-native` package for Node should be automatically compiled during yarn invocation, but if you run into issues with it you might try the following commands:
+
+```
+yarn add utp-native --runtime=electron --target=3.0.1 --disturl=https://atom.io/download/at
+om-shell --build-from-source
+```
+
+or if yarn won't cooperate,
+
+```
+$ electron-rebuild --version 3.0.1 -f -w utp-native
+```
+
+This trickiness is required (for now) because the UTP native version has to match the exact binary version of Node used by Electron or the system will either crash on startup or the network stack refuse to initialize.
