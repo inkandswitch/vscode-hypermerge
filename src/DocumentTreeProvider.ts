@@ -72,7 +72,7 @@ export default class DocumentTreeProvider
 
     // Handle the case where we haven't loaded any content yet.
     // TODO: Add support to show loading progress.
-    if (!content) {
+    if (typeof content === "undefined") {
       // schedule initial loading.
       this.hypermergeWrapper.openDocumentUri(resourceUri);
 
