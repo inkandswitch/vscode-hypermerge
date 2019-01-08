@@ -99,10 +99,13 @@ export default class HistoryTreeProvider
 
     // Create an array of results.
     const { docId = "" } = details;
-    const meta = this.hypermergeWrapper.repo.meta(docId)!;
-    const n = meta.history;
-    const history = [...Array(n).keys()].reverse().map(i => (i + 1).toString());
-    return history;
+    return new Promise( resolve => {
+      this.hypermergeWrapper.repo.meta(docId, (meta) => {
+        const n = meta && meta.type == "Document" ? meta.history : 0;
+        const history = [...Array(n).keys()].reverse().map(i => (i + 1).toString());
+        resolve(history);
+      })
+    })
   }
 
   public getParent(element: HypermergeHistoryKey): HypermergeHistoryKey | null {

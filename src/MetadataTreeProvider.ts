@@ -62,9 +62,11 @@ export default class MetadataTreeProvider
     // Create an array of results.
     const { docId = "" } = details;
     if (element === "actor") {
-      const meta = this.hypermergeWrapper.repo.meta(docId)!;
+      // const meta = this.hypermergeWrapper.repo.meta(docId)!;
+      // this funciton is Async :/  - using a hack instead
+      const actor = this.hypermergeWrapper.repo.front.docs.get(docId)!.actorId
       return {
-        label: "Local Actor: " + meta.actor,
+        label: "Local Actor: " + actor,
         collapsibleState
       };
     }
@@ -107,13 +109,15 @@ export default class MetadataTreeProvider
     // Create an array of results.
     const { docId = "" } = details;
 
-    const meta = this.hypermergeWrapper.repo.meta(docId)!;
-
     if (element === "clocks") {
-      const clock = meta.clock;
-      return Object.entries(clock).map(
-        ([key, value]) => `[${key.slice(0, 5)}]: ${value}`
-      );
+      return new Promise(resolve => {
+        this.hypermergeWrapper.repo.meta(docId, (meta) => {
+          const clock = meta && meta.type === "Document" ? meta.clock : {}
+          resolve(Object.entries(clock).map(
+            ([key, value]) => `[${key.slice(0, 5)}]: ${value}`
+          ))
+        })
+      })
     }
 
     return ["actor", "clocks"];
