@@ -117,7 +117,7 @@
         {
           "id": "hypermergeDetails",
           "title": "Hypermerge",
-          "icon": "resources/logo.svg"
+          "icon": "resources/merge.svg"
         }
       ]
     },
