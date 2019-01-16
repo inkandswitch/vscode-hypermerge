@@ -63,6 +63,7 @@ export default class HypermergeExplorer {
 
         const loadUri = (uri: vscode.Uri) => hypermergeWrapper.openDocumentUri(uri)
             .then(() => this.show(uri))
+            .catch(console.log)
 
         if (parsedUri.scheme === "realm") {
           const bits = uriString.match("realm://(.+?)/(.+?)$")
@@ -85,7 +86,7 @@ export default class HypermergeExplorer {
       "hypermergeExplorer.remove",
       async resourceUri => {
         // XXX TODO
-        // treeDataProvider.removeRoot(resourceUri);
+        this.treeDataProvider.removeRoot(resourceUri);
       }
     );
 
@@ -172,8 +173,11 @@ export default class HypermergeExplorer {
   private show(uri: vscode.Uri): Thenable<void> {
     return vscode.workspace.openTextDocument(uri)
       .then(doc => vscode.window.showTextDocument(doc))
-      .then(() => { this.reveal() }); // TODO: weave this into the thenable chain
-
+      .then(() => { this.reveal() })
+      .then(undefined, (err) => {
+        console.log(err)
+      })
+       // TODO: weave this into the thenable chain
   }
 
   private reveal(): Thenable<void> | null {

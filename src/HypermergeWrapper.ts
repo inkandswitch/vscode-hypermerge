@@ -57,15 +57,19 @@ export class HypermergeWrapper extends EventEmitter {
   constructor() {
     super();
 
-    (global as any).repo = this.repo;
+    try {
+      (global as any).repo = this.repo;
 
-    const stream = this.repo.stream;
-    const id = this.repo.id;
+      const stream = this.repo.stream;
+      const id = this.repo.id;
 
-    const url = "wss://discovery-cloud.herokuapp.com"
-    const hyperswarmwrapper = new DiscoverySwarm({ url, id, stream })
-    // const hyperswarmwrapper = new DiscoverySwarm(defaults({ stream, id, port: 0 }));
-    this.repo.replicate(hyperswarmwrapper);
+      const url = "wss://discovery-cloud.herokuapp.com"
+      const hyperswarmwrapper = new DiscoverySwarm({ url, id, stream })
+      // const hyperswarmwrapper = new DiscoverySwarm(defaults({ stream, id, port: 0 }));
+      this.repo.replicate(hyperswarmwrapper);
+    } catch (err) {
+      console.log("Error in constructor",err)
+    }
   }
 
   resolveSubDocument(doc: any, keyPath): any {
@@ -75,6 +79,20 @@ export class HypermergeWrapper extends EventEmitter {
       content = content[key];
     }
     return content;
+  }
+
+  removeDocumentUri(uri: vscode.Uri){
+    const { docId = "", keyPath = [], history = undefined } =
+      interpretHypermergeUri(uri) || {};
+    const id = docId;
+    delete this.handles[id]
+    this.repo.destroy(id)
+  }
+
+  exists(uri: vscode.Uri): boolean {
+    const { docId = "", keyPath = [], history = undefined } = interpretHypermergeUri(uri) || {};
+    const id = docId;
+    return !!this.handles[id]
   }
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {

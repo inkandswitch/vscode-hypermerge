@@ -51,6 +51,12 @@ export default class DocumentTreeProvider
 
   private treeItemCache = new Map<HypermergeNodeKey, any>();
 
+  public removeRoot(resourceUri: string) {
+    const uri = vscode.Uri.parse(resourceUri);
+    this.hypermergeWrapper.removeDocumentUri(uri);
+    this._onDidChangeTreeData.fire();
+  }
+
   public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
     const resourceUri = vscode.Uri.parse(element);
     const details = interpretHypermergeUri(resourceUri);
@@ -115,7 +121,7 @@ export default class DocumentTreeProvider
   }
 
   private roots(): Thenable<HypermergeNodeKey[]> {
-    return new Promise(resolve => {
+    return new Promise( (resolve) => {
       const meta = this.hypermergeWrapper.repo.back.meta
       meta["readyQ"].push(() => {
         resolve(
@@ -124,7 +130,7 @@ export default class DocumentTreeProvider
             .sort()
         )
       })
-    });
+    }).catch(console.log);
   }
 
   private getDocumentChildren(
@@ -150,7 +156,7 @@ export default class DocumentTreeProvider
         return new URL(node + "/" + child).toString();
       });
       return childNodes;
-    });
+    }).catch(console.log);
   }
 
   attemptToInterpretUrl(str: string): { docId?: string; keyPath?: string[] } {

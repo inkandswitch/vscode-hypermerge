@@ -29,6 +29,10 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
   // --- manage file metadata
 
   stat(uri: vscode.Uri): Thenable<vscode.FileStat> {
+    if (!this.hypermerge.exists(uri)) {
+      console.log(`Stating ${uri.toString()} - file not found`)
+      throw vscode.FileSystemError.FileNotFound(uri);
+    }
     return this.hypermerge.openDocumentUri(uri).then(document => {
       if (document === undefined) {
         throw vscode.FileSystemError.FileNotFound(uri);
@@ -39,7 +43,8 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
         size: 0,
         type: vscode.FileType.SymbolicLink
       };
-    });
+    })
+    .catch(console.log);
   }
 
   readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
@@ -55,7 +60,7 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
         return Buffer.from(document);
       }
       return Buffer.from(JSON.stringify(document, undefined, 2));
-    });
+    }).catch( err => { console.log(err); return Buffer.from("")})
   }
 
   writeFile(
