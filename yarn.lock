@@ -648,10 +648,9 @@ discovery-channel@^5.5.1:
     pretty-hash "^1.0.1"
     thunky "^0.1.0"
 
-discovery-cloud-client@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/discovery-cloud-client/-/discovery-cloud-client-0.0.1.tgz#967e628ad351ea02d31630e7ee5e20f277c815bb"
-  integrity sha512-X73p3paQbyALEOZTMyNMT7xEjA8xY05ajohOMDsGsy3hkRCMoi4MWtWC4ogfYUqsUoPh9GSRCpRyPuiPtn8zVg==
+"discovery-cloud-client@github:orionz/discovery-cloud-client":
+  version "0.0.2"
+  resolved "https://codeload.github.com/orionz/discovery-cloud-client/tar.gz/79f0627123ea1e6a1e76daf096fcdc53bf501e11"
   dependencies:
     bs58 "^4.0.1"
     debug "^4.1.0"
@@ -1214,8 +1213,8 @@ hypercore@^6.20.2:
     unordered-set "^2.0.0"
 
 "hypermerge@github:automerge/hypermerge#fork":
-  version "1.0.24"
-  resolved "https://codeload.github.com/automerge/hypermerge/tar.gz/616375efe5f62f4493abc07dcf61ac3e386c18cb"
+  version "1.0.25"
+  resolved "https://codeload.github.com/automerge/hypermerge/tar.gz/c71d103a7fc15403e339791ccf300555bd1fcb3e"
   dependencies:
     automerge "0.9.2"
     bs58 "^4.0.1"
