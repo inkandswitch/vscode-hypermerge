@@ -5,7 +5,7 @@ import { HypermergeWrapper } from "./HypermergeWrapper"
 
 export default class HypermergeFS implements vscode.FileSystemProvider {
   hypermerge: HypermergeWrapper
-  typeCache: Map<string, "object" | "string" | "number">
+  typeCache: Map<string, "object" | "string" | "number" | "array">
 
   constructor(hypermergeWrapper: HypermergeWrapper) {
     this.hypermerge = hypermergeWrapper
@@ -72,7 +72,11 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
             return Buffer.from(String(document))
 
           default:
-            this.typeCache.set(uri.toString(), "object")
+            if (Array.isArray(document)) {
+              this.typeCache.set(uri.toString(), "array")
+            } else {
+              this.typeCache.set(uri.toString(), "object")
+            }
             return Buffer.from(JSON.stringify(document, undefined, 2))
         }
       })
@@ -105,6 +109,13 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
         const contents = JSON.parse(content.toString())
         if (typeof contents !== "object" || Array.isArray(contents))
           throw new Error("Must be an object")
+        this.hypermerge.setDocumentUri(uri, contents)
+        break
+      }
+
+      case "array": {
+        const contents = JSON.parse(content.toString())
+        if (!Array.isArray(contents)) throw new Error("Must be an array")
         this.hypermerge.setDocumentUri(uri, contents)
         break
       }
