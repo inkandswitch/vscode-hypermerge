@@ -176,5 +176,10 @@
     "random-access-memory": "^3.0.0",
     "utp-native": "^2.1.3",
     "ws": "^6.1.0"
+  },
+  "__metadata": {
+    "id": "b46e5495-640d-4264-87b9-9182d116ac0b",
+    "publisherDisplayName": "Ink & Switch",
+    "publisherId": "1e6dd501-608b-4085-b833-2148715b1d7d"
   }
 }
