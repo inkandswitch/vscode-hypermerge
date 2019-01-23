@@ -18,7 +18,27 @@ You're off to the races!
 
 ## Using Hypermerge for VSCode
 
+This extension allows you to open Hypermerge documents, edit them, and browse their history. It does so by introducing a new activity panel linked on the left-hand of your VSCode window with an icon that looks like a "merge" road sign.
+
+Clicking on that icon will show you several subpanels. The first and most important is HypermergeFS.
+
+### HypermergeFS
+
+From this view you can load and traverse documents. Documents appear primarily at the root of this tree structure and are prefixed by the first five characters of their name. (For example: `[2Kgzz] Editable Title Code`.) You can click any document listed to open it as a text buffer in the main window.
+
+Sub-documents can be displayed as buffers as well, and leaf nodes -- plain strings, for example -- will appear as simple text buffers for editing.
+
+### Text buffers
+
+When you open a hypermerge document (or subdocument), you'll see the document as though it were a JSON file. Under the hood, Hypermerge documents aren't really JSON files, they're really just data structures, but we map them to a sort of pseudo-JSON for editing in the IDE. As changes arrive you should see the buffer updating, and if you make changes, when you save that buffer, we parse the result back to a Javascript object and then compare it to the old document to produce a set of changes that are written. 
+
+### Metadata & Feeds
+
+These two panels give additional visibility into the state of the currently visible document. They show the key for the local actor which the VSCode plugin creates to save changes made in that client, the current vector clock representing all the applied changes for the data you're viewing, and a list of feeds where you can see not only the actual blocks which make up the 
+
 Hypermerge can open arbitrary hypermerge files and treat them as both JSON and nested directory structures. You'll see a "Hypermerge" panel appear in the filesystem / document browser tab. From there you can either import URLs or create new documents. While looking at a Hypermerge document you should see a Hypermerge details pane appear in the list of views on the left navigation bar. Clicking it will display a special panel with details about the hypermerge document you're currently viewing, including providing a mechanism for navigating the document's history.
+
+# Project Admin
 
 ## Publishing a Release
 
