@@ -1,4 +1,11 @@
 import odiff from "odiff"
+import fdiff from "fast-diff"
+
+// HACK display Automerge.Text as a string
+import Automerge from "automerge/frontend"
+Automerge.Text.prototype.toJSON = function toJSON() {
+  return this.join("")
+}
 
 // not exported by odiff:
 export interface Change {
@@ -30,7 +37,11 @@ export function applyChange(root: any, ch: Change) {
 
   // handles empty keypath:
   if (key == null && ch.type === "set") {
-    Object.assign(root, ch.val)
+    if (root instanceof Automerge.Text && typeof ch.val === "string") {
+      applyTextDiff(root, ch.val)
+    } else {
+      Object.assign(root, ch.val)
+    }
     return
   }
 
@@ -42,7 +53,13 @@ export function applyChange(root: any, ch: Change) {
 
   switch (ch.type) {
     case "set":
-      if (key != null) obj[key] = ch.val
+      if (key != null) {
+        if (obj[key] instanceof Automerge.Text && typeof ch.val === "string") {
+          applyTextDiff(obj[key], ch.val)
+        } else {
+          obj[key] = ch.val
+        }
+      }
       break
 
     case "unset":
@@ -57,5 +74,24 @@ export function applyChange(root: any, ch: Change) {
       obj[key].splice(ch.index, ch.num)
 
       break
+  }
+}
+
+function applyTextDiff(text: any, newer: string) {
+  const older = text.join("")
+  const changes = fdiff(older, newer)
+  let idx = 0
+
+  for (const [op, str] of changes) {
+    if (op === fdiff.EQUAL) {
+      idx += str.length
+    } else if (op === fdiff.INSERT) {
+      text.insertAt(idx, ...str.split(""))
+      idx += str.length
+    } else if (op === fdiff.DELETE) {
+      for (let i = 0; i < str.length; i++) {
+        text.deleteAt(idx++)
+      }
+    }
   }
 }

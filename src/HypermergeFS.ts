@@ -2,10 +2,13 @@
 
 import * as vscode from "vscode"
 import { HypermergeWrapper } from "./HypermergeWrapper"
+import Automerge from "automerge"
+
+type Type = "object" | "string" | "number" | "array" | "boolean" | "text"
 
 export default class HypermergeFS implements vscode.FileSystemProvider {
   hypermerge: HypermergeWrapper
-  typeCache: Map<string, "object" | "string" | "number" | "array" | "boolean">
+  typeCache: Map<string, Type>
 
   constructor(hypermergeWrapper: HypermergeWrapper) {
     this.hypermerge = hypermergeWrapper
@@ -64,22 +67,25 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
         // XXX: Generalize this to support leaf nodes
         switch (typeof document) {
           case "string":
-            this.typeCache.set(uri.toString(), "string")
+            this.setType(uri, "string")
             return Buffer.from(document)
 
           case "number":
-            this.typeCache.set(uri.toString(), "number")
+            this.setType(uri, "number")
             return Buffer.from(String(document))
 
           case "boolean":
-            this.typeCache.set(uri.toString(), "boolean")
+            this.setType(uri, "boolean")
             return Buffer.from(String(document))
 
           default:
-            if (Array.isArray(document)) {
-              this.typeCache.set(uri.toString(), "array")
+            if (document instanceof Automerge.Text) {
+              this.setType(uri, "text")
+              return Buffer.from(document.join(""))
+            } else if (Array.isArray(document)) {
+              this.setType(uri, "array")
             } else {
-              this.typeCache.set(uri.toString(), "object")
+              this.setType(uri, "object")
             }
             return Buffer.from(JSON.stringify(document, undefined, 2))
         }
@@ -169,6 +175,10 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
   watch(resource: vscode.Uri, opts): vscode.Disposable {
     // ignore, fires for all changes...
     return new vscode.Disposable(() => {})
+  }
+
+  private setType(uri: vscode.Uri, type: Type) {
+    this.setType(uri, type)
   }
 
   private _fireSoon(...events: vscode.FileChangeEvent[]): void {
