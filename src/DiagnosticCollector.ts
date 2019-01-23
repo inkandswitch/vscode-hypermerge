@@ -8,7 +8,7 @@ export default class DiagnosticCollector {
     hypermergeWrapper: HypermergeWrapper
   ) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection(
-      "hypermergefs"
+      "hypermerge",
     );
 
     hypermergeWrapper.addListener("update", (uri, doc) => {

@@ -11,11 +11,13 @@ export default class DebugManager implements Disposable {
       output.appendLine(format(str, ...args));
     }
 
-    this.subscriptions.push(workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration("hypermergefs.debug")) {
-        this.updateDebug()
-      }
-    }))
+    this.subscriptions.push(
+      workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration("hypermerge.debug")) {
+          this.updateDebug()
+        }
+      }),
+    )
 
     this.updateDebug()
   }
@@ -26,7 +28,7 @@ export default class DebugManager implements Disposable {
 
   updateDebug() {
     const setting = workspace
-      .getConfiguration("hypermergefs")
+      .getConfiguration("hypermerge")
       .get<string>("debug", "")
 
     Debug.enable(setting)

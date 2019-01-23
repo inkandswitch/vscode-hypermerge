@@ -5,7 +5,7 @@
   "version": "0.2.3",
   "publisher": "inkandswitch",
   "repository": {
-    "url": "https://github.com/inkandswitch/hypermergefs-vscode.git",
+    "url": "https://github.com/inkandswitch/vscode-hypermerge.git",
     "type": "git"
   },
   "engines": {
@@ -25,7 +25,7 @@
     "configuration": {
       "title": "Hypermerge",
       "properties": {
-        "hypermergefs.sortOrder": {
+        "hypermerge.sortOrder": {
           "type": "string",
           "enum": [
             "Title (Not Implemented)",
@@ -34,7 +34,7 @@
           "default": "Key",
           "description": "Sorting order for documents in the HypermergeFS tree."
         },
-        "hypermergefs.debug": {
+        "hypermerge.debug": {
           "type": "string",
           "default": "",
           "description": "A comma-separated glob string for enabling debug channels. See the 'debug' npm module. If you're unsure, try '*'."

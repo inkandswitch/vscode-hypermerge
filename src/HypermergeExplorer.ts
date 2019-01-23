@@ -18,8 +18,8 @@ export default class HypermergeExplorer {
 
     // XXX disposable
     vscode.workspace.onDidChangeConfiguration(e => {
-      if (e.affectsConfiguration("hypermergefs.sortOrder")) {
-        this.updateSortConfig()
+      if (e.affectsConfiguration("hypermerge.sortOrder")) {
+        this.updateSortConfig();
       }
     })
 
@@ -139,9 +139,9 @@ export default class HypermergeExplorer {
 
   updateSortConfig() {
     const newSort = vscode.workspace
-      .getConfiguration("hypermergefs")
-      .get<string>("sortOrder", "")
-    const sortEnum = SortOrder[newSort]
+      .getConfiguration("hypermerge")
+      .get<string>("sortOrder", "");
+    const sortEnum = SortOrder[newSort];
     if (!sortEnum) {
       console.log("Bad sort order passed to config")
       return
