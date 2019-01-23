@@ -152,11 +152,13 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "format": "prettier --write 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/node": "^10.2.0",
     "electron-rebuild": "^1.8.2",
+    "prettier": "^1.16.1",
     "typescript": "^3.1.4",
     "vscode": "^1.1.26"
   },
