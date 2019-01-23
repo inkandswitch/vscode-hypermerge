@@ -1,12 +1,19 @@
 import {
-  TreeDataProvider, EventEmitter, Event, Uri, Disposable, window,
-  TreeItem, TreeItemCollapsibleState, ProviderResult, ThemeIcon
-} from "vscode";
-import prettyBytes from "pretty-bytes";
+  TreeDataProvider,
+  EventEmitter,
+  Event,
+  Uri,
+  Disposable,
+  window,
+  TreeItem,
+  TreeItemCollapsibleState,
+  ProviderResult,
+  ThemeIcon,
+} from "vscode"
+import prettyBytes from "pretty-bytes"
 
-import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper";
-import { Actor } from "hypermerge/dist/Actor";
-
+import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper"
+import { Actor } from "hypermerge/dist/Actor"
 
 interface ErrorNode {
   type: "Error"
@@ -55,21 +62,18 @@ export type Node =
   | PeerNode
   | InfoNode
 
-export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposable {
+export default class FeedTreeProvider
+  implements TreeDataProvider<Node>, Disposable {
+  private _onDidChangeTreeData = new EventEmitter<Node | undefined>()
+  readonly onDidChangeTreeData = this._onDidChangeTreeData.event
 
-  private _onDidChangeTreeData = new EventEmitter<Node | undefined>();
-  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
-
-  private activeDocumentUri: Uri | undefined;
+  private activeDocumentUri: Uri | undefined
   private interval: NodeJS.Timeout
 
   constructor(private hypermergeWrapper: HypermergeWrapper) {
+    window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged())
 
-    window.onDidChangeActiveTextEditor(() =>
-      this.onActiveEditorChanged()
-    );
-
-    this.onActiveEditorChanged(); // call it the first time on startup
+    this.onActiveEditorChanged() // call it the first time on startup
 
     // Fairly hacky but it seems to work just fine.
     // Feels like too much work to manage listeners for all this stuff.
@@ -96,13 +100,13 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
     if (!activeTextEditor) return
 
     if (activeTextEditor.document.uri.scheme === "hypermerge") {
-      this.activeDocumentUri = activeTextEditor.document.uri;
-      this.refresh();
+      this.activeDocumentUri = activeTextEditor.document.uri
+      this.refresh()
     }
   }
 
   public refresh(key?: Node): any {
-    this._onDidChangeTreeData.fire(key);
+    this._onDidChangeTreeData.fire(key)
   }
 
   public getTreeItem(node: Node): TreeItem | Thenable<TreeItem> {
@@ -111,7 +115,7 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
     switch (node.type) {
       case "Error":
         return {
-          label: `Error: ${node.message}`
+          label: `Error: ${node.message}`,
         }
 
       case "Actor":
@@ -119,19 +123,23 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
           collapsibleState: State.Expanded,
           label: node.actor.id.slice(0, 8),
           description: node.actor.feed.writable ? "Writable" : "Readonly",
-          id: `Feed/${node.actor.id}`
+          id: `Feed/${node.actor.id}`,
         }
 
       case "Blocks":
         return {
-          label: `${(<any>node.actor.feed).downloaded()} / ${node.actor.feed.length} Blocks`,
+          label: `${(<any>node.actor.feed).downloaded()} / ${
+            node.actor.feed.length
+          } Blocks`,
           collapsibleState: State.Collapsed,
           description: prettyBytes((<any>node.actor.feed).byteLength),
-          id: `Blocks/${node.actor.id}`
+          id: `Blocks/${node.actor.id}`,
         }
 
       case "Block": {
-        const resourceUri = Uri.parse(`hypercore:/${node.actor.id}/${node.index}.json`)
+        const resourceUri = Uri.parse(
+          `hypercore:/${node.actor.id}/${node.index}.json`,
+        )
         const isDownloaded = node.actor.feed.has(node.index)
 
         return blockSize(node.actor.feed, node.index)
@@ -148,40 +156,40 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
               command: {
                 command: "vscode.open",
                 arguments: [resourceUri],
-                title: "View contents"
-              }
+                title: "View contents",
+              },
             }
           })
       }
 
       case "Peers": {
         const { peers } = node.actor.feed
-        const connectedCount = peers.reduce((n, peer: any) => peer.stream.closed ? n : n + 1, 0)
+        const connectedCount = peers.reduce(
+          (n, peer: any) => (peer.stream.closed ? n : n + 1),
+          0,
+        )
 
         return {
           label: `${connectedCount} / ${peers.length} Peers`,
           collapsibleState: State.Collapsed,
-          id: `Peers/${node.actor.id}`
+          id: `Peers/${node.actor.id}`,
         }
       }
 
       case "Peer": {
         const { peer } = node
-        const id = peer.remoteId ? peer.remoteId.toString('hex') : "Local"
+        const id = peer.remoteId ? peer.remoteId.toString("hex") : "Local"
         const tag = id.slice(0, 8)
         const isOpen = !peer.stream.closed
 
         const conn = connectionInfo(peer)
-        const description = join(
-          conn ? conn.type : "",
-          isOpen ? "✓" : "Closed"
-        )
+        const description = join(conn ? conn.type : "", isOpen ? "✓" : "Closed")
 
         return {
           label: `Peer ${tag}`,
           collapsibleState: isOpen ? State.Expanded : State.Collapsed,
           description,
-          id: `Peer/${node.actor.id}/${peer._index}`
+          id: `Peer/${node.actor.id}/${peer._index}`,
         }
       }
 
@@ -192,18 +200,16 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
   }
 
   attemptToInterpretUrl(str: string): { docId?: string; keyPath?: string[] } {
-    if (str.length > 2000 || str.includes("\n")) return {};
+    if (str.length > 2000 || str.includes("\n")) return {}
 
     try {
-      return interpretHypermergeUri(Uri.parse(str)) || {};
+      return interpretHypermergeUri(Uri.parse(str)) || {}
     } catch (e) {
-      return {};
+      return {}
     }
   }
 
-  public getChildren(
-    node?: Node
-  ): ProviderResult<Node[]> {
+  public getChildren(node?: Node): ProviderResult<Node[]> {
     const docId = this.activeDocId
     if (!docId) return []
 
@@ -231,8 +237,9 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
           .map((_, i) => blockNode(node.actor, i))
 
       case "Peers":
-        return node.actor.feed.peers
-          .map((peer, i) => peerNode(node.actor, peer, i))
+        return node.actor.feed.peers.map((peer, i) =>
+          peerNode(node.actor, peer, i),
+        )
 
       case "Peer": {
         const conn = connectionInfo(node.peer)
@@ -242,19 +249,19 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
           infoNode({ label: join("State:", conn.readyState) }),
           infoNode({
             label: join("Local:", conn.local.ip),
-            description: conn.local.port.toString()
+            description: conn.local.port.toString(),
           }),
           infoNode({
             label: join("Remote:", conn.remote.ip),
-            description: conn.remote.port.toString()
+            description: conn.remote.port.toString(),
           }),
           infoNode({
             label: prettyBytes(conn.bytes.read),
-            description: "Received"
+            description: "Received",
           }),
           infoNode({
             label: prettyBytes(conn.bytes.written),
-            description: "Sent"
+            description: "Sent",
           }),
         ]
       }
@@ -268,16 +275,20 @@ export default class FeedTreeProvider implements TreeDataProvider<Node>, Disposa
     // there isn't necessarily a parent for a particular node in our system..
     // or at least not the way i'm currently modeling it
     // XX: the node key should arguably be a path of some kind?
-    return null;
+    return null
   }
 }
 
 function blockSize(feed: any, index: number): Promise<number> {
   return new Promise((res, rej) => {
-    feed._storage.dataOffset(index, [], (err: any, offset: number, size: number) => {
-      if (err) return rej(err)
-      res(size)
-    })
+    feed._storage.dataOffset(
+      index,
+      [],
+      (err: any, offset: number, size: number) => {
+        if (err) return rej(err)
+        res(size)
+      },
+    )
   })
 }
 
@@ -323,7 +334,7 @@ function connectionInfo(peer: any) {
         bytes: {
           read: -1,
           written: -1,
-        }
+        },
       }
     }
 
@@ -341,7 +352,7 @@ function connectionInfo(peer: any) {
       bytes: {
         read: conn.bytesRead,
         written: conn.bytesWritten,
-      }
+      },
     }
   } catch (e) {
     console.log("non-breaking connectionInfo error –", e)

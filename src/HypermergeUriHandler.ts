@@ -1,4 +1,4 @@
-import { UriHandler, Uri, commands, OutputChannel } from 'vscode'
+import { UriHandler, Uri, commands, OutputChannel } from "vscode"
 
 export default class HypermergeUriHandler implements UriHandler {
   output: OutputChannel

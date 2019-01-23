@@ -1,14 +1,14 @@
-import { Disposable, OutputChannel, workspace } from "vscode";
-import Debug from "debug";
-import { format } from "util";
-import DisposableCollection from "./DisposableCollection";
+import { Disposable, OutputChannel, workspace } from "vscode"
+import Debug from "debug"
+import { format } from "util"
+import DisposableCollection from "./DisposableCollection"
 
 export default class DebugManager implements Disposable {
   subscriptions = new DisposableCollection()
 
   constructor(output: OutputChannel) {
     Debug.log = (str, ...args) => {
-      output.appendLine(format(str, ...args));
+      output.appendLine(format(str, ...args))
     }
 
     this.subscriptions.push(

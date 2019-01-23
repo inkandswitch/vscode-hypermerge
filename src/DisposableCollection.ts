@@ -1,4 +1,4 @@
-import { Disposable } from "vscode";
+import { Disposable } from "vscode"
 
 export default class DisposableCollection implements Disposable {
   all: Disposable[] = []
@@ -11,7 +11,7 @@ export default class DisposableCollection implements Disposable {
   dispose() {
     let item: Disposable | undefined
 
-    while (item = this.all.pop()) {
+    while ((item = this.all.pop())) {
       item.dispose()
     }
   }
