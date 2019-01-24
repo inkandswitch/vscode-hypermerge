@@ -106,13 +106,21 @@ export default class DocumentTreeProvider
       content instanceof Array || content instanceof Object
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
+
+    // NOTE: maybe to clever, but worth trying out.
+    // Makes it so that clicking on the root of a code doc opens the code
+    const newUri =
+      typeof content === "object" && "Source.elm" in content
+        ? resourceUri.with({ path: resourceUri.path + "/Source.elm" })
+        : resourceUri
+
     return {
       label,
       resourceUri,
       collapsibleState,
       command: {
         command: "vscode.open",
-        arguments: [resourceUri],
+        arguments: [newUri],
         title: "Open Hypermerge Document",
       },
     }
@@ -138,7 +146,7 @@ export default class DocumentTreeProvider
     const uri = vscode.Uri.parse(node)
     return this.hypermergeWrapper
       .openDocumentUri(uri)
-      .then((content: any) => {
+      .then(content => {
         if (!(content instanceof Object)) {
           return []
         }
