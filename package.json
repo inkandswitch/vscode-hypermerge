@@ -44,6 +44,7 @@
     "commands": [
       {
         "command": "hypermergeExplorer.register",
+        "category": "Hypermerge",
         "title": "Open document",
         "icon": {
           "dark": "resources/open.svg",
@@ -52,6 +53,7 @@
       },
       {
         "command": "hypermergeExplorer.create",
+        "category": "Hypermerge",
         "title": "Create document",
         "icon": {
           "dark": "resources/create.svg",
@@ -60,22 +62,27 @@
       },
       {
         "command": "hypermergeExplorer.remove",
+        "category": "Hypermerge",
         "title": "Remove document"
       },
       {
         "command": "hypermergeExplorer.copyUrl",
+        "category": "Hypermerge",
         "title": "Copy document URL"
       },
       {
         "command": "hypermergeExplorer.forkUrl",
+        "category": "Hypermerge",
         "title": "Create a fork of this document"
       },
       {
         "command": "hypermergeExplorer.followUrl",
+        "category": "Hypermerge",
         "title": "Create a follower of this document"
       },
       {
         "command": "hypermergeExplorer.preview",
+        "category": "Hypermerge",
         "title": "Preview this document"
       }
     ],
