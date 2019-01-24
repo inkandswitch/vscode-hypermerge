@@ -45,6 +45,15 @@ export default class HypermergeExplorer {
       },
     )
 
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.preview",
+      (uriString: string) => {
+        if (!this.validateURL(uriString)) {
+          this.show(vscode.Uri.parse(uriString), { preview: true })
+        }
+      },
+    )
+
     vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri()
       if (uri) {
@@ -173,16 +182,26 @@ export default class HypermergeExplorer {
     return "" // we can return a hint string if it's invalid
   }
 
-  private show(uri: vscode.Uri): Thenable<void> {
+  private show(
+    uri: vscode.Uri,
+    opts: { preview?: boolean } = {},
+  ): Thenable<void> {
     return vscode.workspace
       .openTextDocument(uri)
-      .then(doc => vscode.window.showTextDocument(doc))
-      .then(() => {
-        this.reveal()
+      .then(doc => {
+        vscode.window.showTextDocument(doc, {
+          preserveFocus: opts.preview,
+          viewColumn: opts.preview ? 2 : undefined,
+        })
       })
-      .then(undefined, err => {
-        console.log(err)
-      })
+      .then(
+        () => {
+          if (!opts.preview) this.reveal()
+        },
+        err => {
+          console.log(err)
+        },
+      )
     // TODO: weave this into the thenable chain
   }
 

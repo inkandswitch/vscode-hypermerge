@@ -73,6 +73,10 @@
       {
         "command": "hypermergeExplorer.followUrl",
         "title": "Create a follower of this document"
+      },
+      {
+        "command": "hypermergeExplorer.preview",
+        "title": "Preview this document"
       }
     ],
     "menus": {

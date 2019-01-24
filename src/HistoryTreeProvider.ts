@@ -63,7 +63,7 @@ export default class HistoryTreeProvider
       resourceUri,
       collapsibleState,
       command: {
-        command: "vscode.open",
+        command: "hypermergeExplorer.preview",
         arguments: [resourceUri],
         title: "Open Hypermerge Document",
       },
