@@ -13,6 +13,7 @@ import * as Diff from "./Diff"
 
 interface HypermergeNodeDetails {
   docId: string
+  docUrl: string
   keyPath: string[]
   label?: string
   history?: number
@@ -25,22 +26,23 @@ export function interpretHypermergeUri(
     const [_, docId, ...keyPath] = uri.path.split("/")
 
     const input = new Map<string, string>(
-      uri.query.split("&").map(pair => {
-        const halves = pair.split("=")
-        return [halves[0], halves[1]] as [string, string]
-      }),
+      uri.query.split("&").map(
+        (pair): [string, string] => {
+          const [key, value = ""] = pair.split("=")
+          return [key, value]
+        },
+      ),
     )
 
     const historyString = input.get("history")
-    const history = historyString ? parseInt(historyString) : undefined
+    const history = historyString ? parseInt(historyString, 10) : undefined
 
     const label = input.get("label")
-    return { docId, keyPath, label, history }
-  }
-  if (uri.scheme === "capstone") {
+    return { docId, keyPath, label, history, docUrl: "hypermerge:/" + docId }
+  } else if (uri.scheme === "capstone") {
     const pathElements = uri.path.split("/")
     const docId = pathElements[1]
-    return { docId, keyPath: [] }
+    return { docId, keyPath: [], docUrl: "hypermerge:/" + docId }
   }
 
   return null
@@ -53,7 +55,7 @@ const storage = raf
 
 export class HypermergeWrapper extends EventEmitter {
   repo = new Repo({ path, storage })
-  handles: { [docId: string]: Handle<any> } = {}
+  handles: { [docUrl: string]: Handle<any> } = {}
 
   constructor() {
     super()
@@ -76,32 +78,29 @@ export class HypermergeWrapper extends EventEmitter {
   resolveSubDocument(doc: any, keyPath): any {
     let content = doc
     let key
-    while ((key = keyPath.shift())) {
+    while ((key = keyPath.shift()) != null) {
       content = content[key]
     }
     return content
   }
 
   removeDocumentUri(uri: vscode.Uri) {
-    const { docId = "", keyPath = [], history = undefined } =
-      interpretHypermergeUri(uri) || {}
-    const id = docId
-    delete this.handles[id]
-    this.repo.destroy(id)
+    const { docUrl = "" } = interpretHypermergeUri(uri) || {}
+    delete this.handles[docUrl]
+    this.repo.destroy(docUrl)
   }
 
   exists(uri: vscode.Uri): boolean {
-    const { docId = "", keyPath = [], history = undefined } =
-      interpretHypermergeUri(uri) || {}
-    const id = docId
-    return !!this.handles[id]
+    const { docUrl = "" } = interpretHypermergeUri(uri) || {}
+    return !!this.handles[docUrl]
   }
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {
-    const { docId = "", keyPath = [], history = undefined } =
+    const { docUrl = "", keyPath = [], history = undefined } =
       interpretHypermergeUri(uri) || {}
-    const id = docId
+
     const h = this.handles
+
     return new Promise((resolve, reject) => {
       const subDoc = doc => resolve(this.resolveSubDocument(doc, keyPath))
       const progressCb = event => {
@@ -110,56 +109,57 @@ export class HypermergeWrapper extends EventEmitter {
       }
       const update = doc => this.emit("update", uri, doc)
       if (history) {
-        this.repo.materialize(id, history, subDoc)
+        this.repo.materialize(docUrl, history, subDoc)
       } else {
-        h[id] =
-          h[id] ||
+        h[docUrl] =
+          h[docUrl] ||
           this.repo
-            .open(id)
+            .open(docUrl)
             .subscribe(update)
             .subscribeProgress(progressCb)
-        this.repo.doc(id, subDoc)
+        this.repo.doc(docUrl, subDoc)
       }
     })
   }
 
   createDocumentUri(): vscode.Uri {
-    const docId = this.repo.create()
+    const docUrl = this.repo.create()
     // FIXME: orion, we can't open newly created docs before their first change
-    this.repo.change(docId, doc => {
+    this.repo.change(docUrl, doc => {
       doc.title = "New Document"
     })
 
-    return vscode.Uri.parse("hypermerge:/" + docId)
+    return vscode.Uri.parse(docUrl)
   }
 
   forkDocumentUri(forkedDoc: vscode.Uri): vscode.Uri | null {
-    const { docId = "", keyPath = [] } = interpretHypermergeUri(forkedDoc) || {}
-    if (!docId) {
+    const { docUrl = "", keyPath = [] } =
+      interpretHypermergeUri(forkedDoc) || {}
+    if (!docUrl) {
       return null
     }
 
-    const forkId = this.repo.fork(docId)
-    return vscode.Uri.parse("hypermerge:/" + forkId)
+    const forkUrl = this.repo.fork(docUrl)
+    return vscode.Uri.parse(forkUrl)
   }
 
   followDocumentUri(followedDoc: vscode.Uri): vscode.Uri | null {
-    const { docId = "", keyPath = [] } =
+    const { docUrl = "", keyPath = [] } =
       interpretHypermergeUri(followedDoc) || {}
 
-    if (!docId) {
+    if (!docUrl) {
       return null
     }
 
     const followId = this.repo.create()
-    this.repo.follow(followId, docId)
-    return vscode.Uri.parse("hypermerge:/" + followId)
+    this.repo.follow(followId, docUrl)
+    return vscode.Uri.parse(docUrl)
   }
 
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
-    const { docId = "", keyPath = [] } = interpretHypermergeUri(uri) || {}
+    const { docUrl = "", keyPath = [] } = interpretHypermergeUri(uri) || {}
 
-    this.repo.change(docId, doc => {
+    this.repo.change(docUrl, doc => {
       let content = doc
       let key: string | undefined
       while ((key = keyPath.shift()) != null) {
