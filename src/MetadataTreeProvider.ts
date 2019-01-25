@@ -107,11 +107,11 @@ export default class MetadataTreeProvider
     }
 
     // Create an array of results.
-    const { docId = "" } = details
+    const { docUrl = "" } = details
 
     if (element === "clocks") {
       return new Promise(resolve => {
-        this.hypermergeWrapper.repo.meta(docId, meta => {
+        this.hypermergeWrapper.repo.meta(docUrl, meta => {
           const clock = meta && meta.type === "Document" ? meta.clock : {}
           resolve(
             Object.entries(clock).map(
