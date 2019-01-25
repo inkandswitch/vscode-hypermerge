@@ -4,19 +4,23 @@ import DocumentTreeProvider, {
   SortOrder,
   HypermergeNodeKey,
 } from "./DocumentTreeProvider"
+import LedgerTreeProvider from "./LedgerTreeProvider"
 const clipboardy = require("clipboardy")
 
 export default class HypermergeExplorer {
   // TODO:
   // better error reporting on invalid json
-  private hypermergeViewer: vscode.TreeView<HypermergeNodeKey>
-  private treeDataProvider: DocumentTreeProvider
+  private ledgerView: vscode.TreeView<HypermergeNodeKey>
+  private documentView: vscode.TreeView<HypermergeNodeKey>
+  private ledgerDataProvider: LedgerTreeProvider
+  private documentDataProvider: DocumentTreeProvider
 
   constructor(
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper,
   ) {
-    this.treeDataProvider = new DocumentTreeProvider(hypermergeWrapper)
+    this.ledgerDataProvider = new LedgerTreeProvider(hypermergeWrapper)
+    this.documentDataProvider = new DocumentTreeProvider(hypermergeWrapper)
 
     // XXX disposable
     vscode.workspace.onDidChangeConfiguration(e => {
@@ -27,19 +31,26 @@ export default class HypermergeExplorer {
 
     this.updateSortConfig()
 
-    this.hypermergeViewer = vscode.window.createTreeView("hypermergeExplorer", {
-      treeDataProvider: this.treeDataProvider,
+    this.ledgerView = vscode.window.createTreeView("hypermergeLedger", {
+      treeDataProvider: this.ledgerDataProvider,
     })
 
-    vscode.commands.registerCommand("hypermergeExplorer.refresh", () =>
-      this.treeDataProvider.refresh(),
+    this.documentView = vscode.window.createTreeView("hypermergeExplorer", {
+      treeDataProvider: this.documentDataProvider,
+    })
+
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.refresh",
+      () => this.ledgerDataProvider.refresh(),
+      this.documentDataProvider.refresh(),
     )
 
     vscode.commands.registerCommand(
       "hypermergeExplorer.open",
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
-          this.treeDataProvider.refresh()
+          this.ledgerDataProvider.refresh()
+          this.documentDataProvider.refresh()
           this.show(vscode.Uri.parse(uriString))
         }
       },
@@ -57,7 +68,8 @@ export default class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri()
       if (uri) {
-        this.treeDataProvider.refresh()
+        this.ledgerDataProvider.refresh()
+        this.documentDataProvider.refresh()
         this.show(uri)
       }
     })
@@ -70,7 +82,8 @@ export default class HypermergeExplorer {
       if (uriString) {
         // TODO: doesn't open to the subdoc e.g. `/Source.elm`
         const parsedUri = vscode.Uri.parse(uriString)
-        this.treeDataProvider.refresh()
+        this.ledgerDataProvider.refresh()
+        this.documentDataProvider.refresh()
 
         const loadUri = (uri: vscode.Uri) =>
           hypermergeWrapper
@@ -98,7 +111,8 @@ export default class HypermergeExplorer {
       "hypermergeExplorer.remove",
       async resourceUri => {
         // XXX TODO
-        this.treeDataProvider.removeRoot(resourceUri)
+        this.ledgerDataProvider.removeRoot(resourceUri)
+        this.documentDataProvider.removeRoot(resourceUri)
       },
     )
 
@@ -122,7 +136,8 @@ export default class HypermergeExplorer {
 
         const uriString = newUrl.toString()
         if (uriString) {
-          this.treeDataProvider.refresh()
+          this.ledgerDataProvider.refresh()
+          this.documentDataProvider.refresh()
         }
       },
     )
@@ -139,7 +154,8 @@ export default class HypermergeExplorer {
 
         const uriString = newUrl.toString()
         if (uriString) {
-          this.treeDataProvider.refresh()
+          this.ledgerDataProvider.refresh()
+          this.documentDataProvider.refresh()
         }
       },
     )
@@ -187,11 +203,11 @@ export default class HypermergeExplorer {
       console.log("Bad sort order passed to config")
       return
     }
-    if (!this.treeDataProvider) {
+    if (!this.ledgerDataProvider) {
       return // this means there's probably a race condition on first startup
     }
-    this.treeDataProvider.updateSortOrder(sortEnum)
-    this.treeDataProvider.refresh()
+    this.ledgerDataProvider.updateSortOrder(sortEnum)
+    this.ledgerDataProvider.refresh()
   }
 
   validateURL(input: string) {
@@ -237,7 +253,7 @@ export default class HypermergeExplorer {
   private reveal(): Thenable<void> | null {
     const node = this.getNode()
     if (node) {
-      return this.hypermergeViewer.reveal(node)
+      return this.documentView.reveal(node)
     }
     return null
   }

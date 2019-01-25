@@ -38,6 +38,16 @@
           "type": "string",
           "default": "",
           "description": "A comma-separated glob string for enabling debug channels. See the 'debug' npm module. If you're unsure, try '*'."
+        },
+        "hypermerge.roots": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uniqueItems": true,
+          "default": [],
+          "description": "A list of document URLs to display as roots in your document tree."
         }
       }
     },
@@ -154,13 +164,13 @@
       "explorer": [
         {
           "id": "hypermergeExplorer",
-          "name": "HypermergeFS"
+          "name": "Hypermerge Documents"
         }
       ],
       "hypermergeDetails": [
         {
-          "id": "hypermergeExplorer",
-          "name": "HypermergeFS"
+          "id": "hypermergeLedger",
+          "name": "Ledger Documents"
         },
         {
           "id": "hypermergeMetadata",
