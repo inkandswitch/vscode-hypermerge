@@ -147,6 +147,10 @@
         {
           "command": "hypermerge.createKey",
           "when": "resourceScheme == hypermerge"
+        },
+        {
+          "command": "hypermerge.addRoot",
+          "when": "resourceScheme == hypermerge"
         }
       ],
       "view/title": [

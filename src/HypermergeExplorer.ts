@@ -77,12 +77,18 @@ export default class HypermergeExplorer {
       this.show(uri)
     })
 
-    vscode.commands.registerCommand("hypermerge.addRoot", uri => {
+    vscode.commands.registerCommand("hypermerge.addRoot", url => {
+      const uri = this.findUri(url)
+      if (!uri) return
+
       this.documentDataProvider.addRoot(uri.toString())
       this.show(uri)
     })
 
-    vscode.commands.registerCommand("hypermerge.removeRoot", uri => {
+    vscode.commands.registerCommand("hypermerge.removeRoot", url => {
+      const uri = this.findUri(url)
+      if (!uri) return
+
       this.documentDataProvider.removeRoot(uri.toString())
     })
 
@@ -189,7 +195,7 @@ export default class HypermergeExplorer {
     vscode.commands.registerCommand(
       "hypermerge.createKey",
       async (url?: string) => {
-        const uri = url ? Uri.parse(url) : this.currentHypermergeUri()
+        const uri = this.findUri(url)
 
         if (!uri) return
 
@@ -286,7 +292,10 @@ export default class HypermergeExplorer {
     return null
   }
 
-  private currentHypermergeUri(): Uri | undefined {
+  private findUri(uri?: string | Uri): Uri | undefined {
+    if (typeof uri === "string") return Uri.parse(uri)
+    if (uri) return uri
+
     const editor = vscode.window.activeTextEditor
     if (editor && editor.document.uri.scheme === "hypermerge") {
       return editor.document.uri
