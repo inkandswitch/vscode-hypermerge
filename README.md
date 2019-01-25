@@ -1,19 +1,20 @@
 # Hypermerge for VSCode
 
-Browse & edit Hypermerge documents. This VSCode extension was built to work with REaLM but should be mostly compatible with Capstone, PushPin, and other Hypermerge projects (though support is subject to the vagaries of research software version drift.)
+Browse & edit Hypermerge documents. This VSCode extension was built to work with [Farm][farm] but should be mostly compatible with Capstone, PushPin, and other Hypermerge projects (though support is subject to the vagaries of research software version drift.)
 
-* Install the Hypermerge VScode extension. (It is listed in the VSCode extension store.)
-* In the File / Documents tab, you should now see a HypermergeFS tab.
-* Hover over the title of that tab, click the [...] icon, select "Open Document" and paste in a hypermerge document link.
-* Alternately, create a new hypermerge document.
+- Install the Hypermerge VScode extension. (It is listed in the VSCode extension store.)
+- In the File / Documents tab, you should now see a HypermergeFS tab.
+- Hover over the title of that tab, click the [...] icon, select "Open Document" and paste in a hypermerge document link.
+- Alternately, create a new hypermerge document.
 
 If you want to work on, debug, or develop on the VSCode extension follow these steps instead:
- * Check out this repository.
- * Run `yarn` to install dependencies. 
- * Open the repository in vscode (e.g. `$ code . `)
- * Go to Debug -> Start Debugging (F5) in the menu.
- * A second, new VSCode window will open running the extension version you just built. You'll be able to put breakpoints in the code and see debug output in your original window. The new window will be labeled \[Extension Development\] so you can recognize it.
- 
+
+- Check out this repository.
+- Run `yarn` to install dependencies.
+- Open the repository in vscode (e.g. `$ code .`)
+- Go to Debug -> Start Debugging (F5) in the menu.
+- A second, new VSCode window will open running the extension version you just built. You'll be able to put breakpoints in the code and see debug output in your original window. The new window will be labeled \[Extension Development\] so you can recognize it.
+
 You're off to the races!
 
 ## Using Hypermerge for VSCode
@@ -30,11 +31,11 @@ Sub-documents can be displayed as buffers as well, and leaf nodes -- plain strin
 
 ### Text buffers
 
-When you open a hypermerge document (or subdocument), you'll see the document as though it were a JSON file. Under the hood, Hypermerge documents aren't really JSON files, they're really just data structures, but we map them to a sort of pseudo-JSON for editing in the IDE. As changes arrive you should see the buffer updating, and if you make changes, when you save that buffer, we parse the result back to a Javascript object and then compare it to the old document to produce a set of changes that are written. 
+When you open a hypermerge document (or subdocument), you'll see the document as though it were a JSON file. Under the hood, Hypermerge documents aren't really JSON files, they're really just data structures, but we map them to a sort of pseudo-JSON for editing in the IDE. As changes arrive you should see the buffer updating, and if you make changes, when you save that buffer, we parse the result back to a Javascript object and then compare it to the old document to produce a set of changes that are written.
 
 ### Metadata & Feeds
 
-These two panels give additional visibility into the state of the currently visible document. They show the key for the local actor which the VSCode plugin creates to save changes made in that client, the current vector clock representing all the applied changes for the data you're viewing, and a list of feeds where you can see not only the actual blocks which make up the 
+These two panels give additional visibility into the state of the currently visible document. They show the key for the local actor which the VSCode plugin creates to save changes made in that client, the current vector clock representing all the applied changes for the data you're viewing, and a list of feeds where you can see not only the actual blocks which make up the
 
 Hypermerge can open arbitrary hypermerge files and treat them as both JSON and nested directory structures. You'll see a "Hypermerge" panel appear in the filesystem / document browser tab. From there you can either import URLs or create new documents. While looking at a Hypermerge document you should see a Hypermerge details pane appear in the list of views on the left navigation bar. Clicking it will display a special panel with details about the hypermerge document you're currently viewing, including providing a mechanism for navigating the document's history.
 
@@ -60,3 +61,5 @@ $ electron-rebuild --version 3.0.1 -f -w utp-native
 ```
 
 This trickiness is required (for now) because the UTP native version has to match the exact binary version of Node used by Electron or the system will either crash on startup or the network stack refuse to initialize.
+
+[farm]: https://github.com/inkandswitch/farm

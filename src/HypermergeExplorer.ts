@@ -91,10 +91,10 @@ export default class HypermergeExplorer {
             .then(() => this.show(uri))
             .catch(console.log)
 
-        if (parsedUri.scheme === "realm") {
-          const bits = uriString.match("realm://(.+?)/(.+?)$")
+        if (parsedUri.scheme === "farm" || parsedUri.scheme === "realm") {
+          const bits = uriString.match("(?:farm|realm)://(.+?)/(.+?)$")
           if (!(bits && bits.length == 3)) {
-            throw new Error("invalid Realm URL")
+            throw new Error("invalid Farm URL")
           }
           const [_, codeDoc, dataDoc] = bits
 
@@ -218,7 +218,13 @@ export default class HypermergeExplorer {
     } catch {
       return "invalid URL"
     }
-    if (!(url.scheme == "hypermerge" || url.scheme == "realm")) {
+    if (
+      !(
+        url.scheme == "hypermerge" ||
+        url.scheme == "farm" ||
+        url.scheme == "realm"
+      )
+    ) {
       return "invalid scheme -- must be a hypermerge URL"
     }
     if (url.path === "") {
