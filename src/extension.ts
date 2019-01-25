@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    (vscode.window as any).registerUriHandler(new HypermergeUriHandler(output)),
+    vscode.window.registerUriHandler(new HypermergeUriHandler(output)),
 
     new DetailsViewContainer(hypermergeWrapper),
   )

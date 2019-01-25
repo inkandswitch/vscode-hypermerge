@@ -2,11 +2,12 @@ import BaseDocumentTreeProvider, {
   HypermergeNodeKey,
   SortOrder,
 } from "./BaseDocumentTreeProvider"
+import { Uri } from "vscode"
 
 export { HypermergeNodeKey, SortOrder }
 
 export default class LedgerTreeProvider extends BaseDocumentTreeProvider {
-  protected async roots(): Promise<HypermergeNodeKey[]> {
+  public async roots(): Promise<HypermergeNodeKey[]> {
     const meta = this.hypermergeWrapper.repo.back.meta
 
     return new Promise<HypermergeNodeKey[]>(resolve => {
@@ -19,5 +20,15 @@ export default class LedgerTreeProvider extends BaseDocumentTreeProvider {
         resolve(nodeKeys)
       })
     })
+  }
+
+  public addRoot(resourceUri: string) {
+    this.hypermergeWrapper.openDocumentUri(Uri.parse(resourceUri))
+  }
+
+  public removeRoot(resourceUri: string) {
+    const uri = Uri.parse(resourceUri)
+    this.hypermergeWrapper.removeDocumentUri(uri)
+    this.refresh(resourceUri)
   }
 }

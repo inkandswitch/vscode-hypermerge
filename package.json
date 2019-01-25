@@ -18,6 +18,7 @@
     "onFileSystem:hypermerge",
     "onFileSystem:hypercore",
     "onView:hypermergeExplorer",
+    "onView:hypermergeLedger",
     "onUri"
   ],
   "main": "./out/src/extension",
@@ -53,12 +54,44 @@
     },
     "commands": [
       {
-        "command": "hypermerge.register",
+        "command": "hypermerge.open",
         "category": "Hypermerge",
         "title": "Open document",
         "icon": {
           "dark": "resources/open.svg",
           "light": "resources/open.svg"
+        }
+      },
+      {
+        "command": "hypermerge.addRoot",
+        "category": "Hypermerge",
+        "title": "Add document as root",
+        "icon": {
+          "dark": "resources/open.svg",
+          "light": "resources/open.svg"
+        }
+      },
+      {
+        "command": "hypermerge.removeRoot",
+        "category": "Hypermerge",
+        "title": "Remove document from roots"
+      },
+      {
+        "command": "hypermerge.openRoot",
+        "category": "Hypermerge",
+        "title": "Open document and add as root",
+        "icon": {
+          "dark": "resources/open.svg",
+          "light": "resources/open.svg"
+        }
+      },
+      {
+        "command": "hypermerge.createRoot",
+        "category": "Hypermerge",
+        "title": "Create document and add as root",
+        "icon": {
+          "dark": "resources/create.svg",
+          "light": "resources/create.svg"
         }
       },
       {
@@ -71,9 +104,9 @@
         }
       },
       {
-        "command": "hypermerge.remove",
+        "command": "hypermerge.destroy",
         "category": "Hypermerge",
-        "title": "Remove document"
+        "title": "Destroy document"
       },
       {
         "command": "hypermerge.copyUrl",
@@ -91,7 +124,7 @@
         "title": "Create a follower of this document"
       },
       {
-        "command": "hypermerge.open",
+        "command": "hypermerge.view",
         "category": "Hypermerge",
         "title": "View document"
       },
@@ -109,7 +142,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "hypermerge.register"
+          "command": "hypermerge.open"
         },
         {
           "command": "hypermerge.createKey",
@@ -118,23 +151,34 @@
       ],
       "view/title": [
         {
-          "command": "hypermerge.register",
-          "when": "view == hypermergeExplorer",
+          "command": "hypermerge.open",
+          "when": "view == hypermergeLedger",
           "group": "navigation"
         },
         {
           "command": "hypermerge.create",
+          "when": "view == hypermergeLedger",
+          "group": "navigation"
+        },
+        {
+          "command": "hypermerge.openRoot",
+          "when": "view == hypermergeExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "hypermerge.createRoot",
           "when": "view == hypermergeExplorer",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "hypermerge.open",
-          "when": "view == hypermergeExplorer"
+          "command": "hypermerge.view",
+          "when": "view == hypermergeExplorer",
+          "group": "navigation"
         },
         {
-          "command": "hypermerge.remove",
+          "command": "hypermerge.removeRoot",
           "when": "view == hypermergeExplorer"
         },
         {
@@ -148,6 +192,31 @@
         {
           "command": "hypermerge.followUrl",
           "when": "view == hypermergeExplorer"
+        },
+        {
+          "command": "hypermerge.view",
+          "when": "view == hypermergeLedger",
+          "group": "navigation"
+        },
+        {
+          "command": "hypermerge.destroy",
+          "when": "view == hypermergeLedger"
+        },
+        {
+          "command": "hypermerge.copyUrl",
+          "when": "view == hypermergeLedger"
+        },
+        {
+          "command": "hypermerge.forkUrl",
+          "when": "view == hypermergeLedger"
+        },
+        {
+          "command": "hypermerge.followUrl",
+          "when": "view == hypermergeLedger"
+        },
+        {
+          "command": "hypermerge.addRoot",
+          "when": "view == hypermergeLedger"
         }
       ]
     },

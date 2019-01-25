@@ -130,7 +130,9 @@ export class HypermergeWrapper extends EventEmitter {
         console.log("Progress")
         console.log(event)
       }
+
       const update = doc => this.emit("update", uri, doc)
+
       if (history) {
         this.repo.materialize(docUrl, history, subDoc)
       } else {
@@ -143,6 +145,19 @@ export class HypermergeWrapper extends EventEmitter {
         this.repo.doc(docUrl, subDoc)
       }
     })
+  }
+
+  watchDocumentUri(uri: vscode.Uri, cb: (doc: any) => void): void {
+    const { docUrl = "", keyPath = [], history = undefined } =
+      interpretHypermergeUri(uri) || {}
+
+    const resolve = doc => cb(this.resolveSubDocument(doc, keyPath))
+
+    if (history) {
+      this.repo.materialize(docUrl, history, resolve)
+    } else {
+      this.repo.open(docUrl).subscribe(resolve)
+    }
   }
 
   createDocumentUri(): vscode.Uri {

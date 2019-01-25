@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { Uri } from "vscode"
 import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper"
 import DocumentTreeProvider, {
   SortOrder,
@@ -45,78 +46,111 @@ export default class HypermergeExplorer {
       this.documentDataProvider.refresh(),
     )
 
-    vscode.commands.registerCommand("hypermerge.open", (uriString: string) => {
-      if (!this.validateURL(uriString)) {
-        this.ledgerDataProvider.refresh()
-        this.documentDataProvider.refresh()
-        this.show(vscode.Uri.parse(uriString))
-      }
-    })
-
     vscode.commands.registerCommand(
       "hypermerge.preview",
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
-          this.show(vscode.Uri.parse(uriString), { preview: true, aside: true })
+          this.show(Uri.parse(uriString), { preview: true, aside: true })
         }
       },
     )
 
-    vscode.commands.registerCommand("hypermerge.create", async () => {
-      const uri = await hypermergeWrapper.createDocumentUri()
-      if (uri) {
-        this.ledgerDataProvider.refresh()
-        this.documentDataProvider.refresh()
-        this.show(uri)
+    vscode.commands.registerCommand("hypermerge.view", (uriString: string) => {
+      if (!this.validateURL(uriString)) {
+        this.show(Uri.parse(uriString))
       }
     })
 
-    vscode.commands.registerCommand("hypermerge.register", async () => {
+    vscode.commands.registerCommand("hypermerge.create", async () => {
+      const uri = hypermergeWrapper.createDocumentUri()
+      this.ledgerDataProvider.refresh()
+      this.show(uri)
+    })
+
+    vscode.commands.registerCommand("hypermerge.createRoot", () => {
+      const uri = hypermergeWrapper.createDocumentUri()
+
+      this.documentDataProvider.addRoot(uri.toString())
+
+      this.ledgerDataProvider.refresh() // HACK
+
+      this.show(uri)
+    })
+
+    vscode.commands.registerCommand("hypermerge.addRoot", uri => {
+      this.documentDataProvider.addRoot(uri.toString())
+      this.show(uri)
+    })
+
+    vscode.commands.registerCommand("hypermerge.removeRoot", uri => {
+      this.documentDataProvider.removeRoot(uri.toString())
+    })
+
+    vscode.commands.registerCommand("hypermerge.openRoot", async () => {
       const uriString = await vscode.window.showInputBox({
         placeHolder: "Browse which hypermerge URL?",
         validateInput: this.validateURL,
       })
-      if (uriString) {
-        // TODO: doesn't open to the subdoc e.g. `/Source.elm`
-        const parsedUri = vscode.Uri.parse(uriString)
-        this.ledgerDataProvider.refresh()
-        this.documentDataProvider.refresh()
 
-        const loadUri = (uri: vscode.Uri) =>
-          hypermergeWrapper
-            .openDocumentUri(uri)
-            .then(() => this.show(uri))
-            .catch(console.log)
+      if (!uriString) return
 
-        if (parsedUri.scheme === "farm" || parsedUri.scheme === "realm") {
-          const bits = uriString.match("(?:farm|realm)://(.+?)/(.+?)$")
-          if (!(bits && bits.length == 3)) {
-            throw new Error("invalid Farm URL")
-          }
-          const [_, codeDoc, dataDoc] = bits
+      const parsedUri = Uri.parse(uriString)
 
-          // TODO: show these side-by-side
-          loadUri(vscode.Uri.parse("hypermerge:/" + codeDoc))
-          loadUri(vscode.Uri.parse("hypermerge:/" + dataDoc))
-        } else {
-          loadUri(parsedUri)
+      if (parsedUri.scheme === "farm" || parsedUri.scheme === "realm") {
+        const [_, codeId, dataId]: string[] =
+          uriString.match("(?:farm|realm)://(.+?)/(.+?)$") || []
+
+        if (!codeId || !dataId) {
+          throw new Error("invalid Farm URL")
         }
+
+        this.documentDataProvider.addRoot(parsedUri.toString())
+
+        this.show(Uri.parse("hypermerge:/" + codeId + "/Source.elm"))
+        this.show(Uri.parse("hypermerge:/" + dataId), { aside: true })
+      } else {
+        this.documentDataProvider.addRoot(parsedUri.toString())
+        this.show(parsedUri)
       }
     })
 
-    vscode.commands.registerCommand("hypermerge.remove", async resourceUri => {
-      // XXX TODO
+    vscode.commands.registerCommand("hypermerge.open", async () => {
+      const uriString = await vscode.window.showInputBox({
+        placeHolder: "Browse which hypermerge URL?",
+        validateInput: this.validateURL,
+      })
+
+      if (!uriString) return
+
+      const parsedUri = Uri.parse(uriString)
+
+      if (parsedUri.scheme === "farm" || parsedUri.scheme === "realm") {
+        const [_, codeId, dataId]: string[] =
+          uriString.match("(?:farm|realm)://(.+?)/([^/]+?)$") || []
+
+        if (!codeId || !dataId) {
+          throw new Error("invalid Farm URL")
+        }
+
+        this.show(Uri.parse("hypermerge:/" + codeId + "/Source.elm"))
+        this.show(Uri.parse("hypermerge:/" + dataId), { aside: true })
+      } else {
+        this.show(parsedUri)
+      }
+    })
+
+    vscode.commands.registerCommand("hypermerge.destroy", resourceUri => {
       this.ledgerDataProvider.removeRoot(resourceUri)
       this.documentDataProvider.removeRoot(resourceUri)
     })
 
     vscode.commands.registerCommand("hypermerge.copyUrl", async resourceUrl => {
-      const url = vscode.Uri.parse(resourceUrl)
+      const url = Uri.parse(resourceUrl)
       clipboardy.writeSync(url.toString())
     })
 
     vscode.commands.registerCommand("hypermerge.forkUrl", async resourceUrl => {
-      const forkedUrl = vscode.Uri.parse(resourceUrl)
+      const forkedUrl = Uri.parse(resourceUrl)
       const newUrl = await hypermergeWrapper.forkDocumentUri(forkedUrl)
       if (!newUrl) {
         // probably oughta print an error
@@ -133,7 +167,7 @@ export default class HypermergeExplorer {
     vscode.commands.registerCommand(
       "hypermerge.followUrl",
       async resourceUrl => {
-        const followedUrl = vscode.Uri.parse(resourceUrl)
+        const followedUrl = Uri.parse(resourceUrl)
         const newUrl = await hypermergeWrapper.followDocumentUri(followedUrl)
         if (!newUrl) {
           // probably oughta print an error
@@ -152,28 +186,34 @@ export default class HypermergeExplorer {
       this.reveal(),
     )
 
-    vscode.commands.registerCommand("hypermerge.createKey", async () => {
-      const uri = this.currentHypermergeUri()
+    vscode.commands.registerCommand(
+      "hypermerge.createKey",
+      async (url?: string) => {
+        const uri = url ? Uri.parse(url) : this.currentHypermergeUri()
 
-      if (!uri) return
+        if (!uri) return
 
-      const keyName = await vscode.window.showInputBox({
-        prompt: "What should the key be called?",
-        placeHolder: "config",
-      })
-
-      if (!keyName) return
-
-      const newUri = hypermergeWrapper.changeDocumentUri(uri, (state: any) => {
-        if (keyName in state) return
-        state[keyName] = {}
-      })
-
-      if (newUri)
-        this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
-          aside: true,
+        const keyName = await vscode.window.showInputBox({
+          prompt: "What should the key be called?",
+          placeHolder: "config",
         })
-    })
+
+        if (!keyName) return
+
+        const newUri = hypermergeWrapper.changeDocumentUri(
+          uri,
+          (state: any) => {
+            if (keyName in state) return
+            state[keyName] = {}
+          },
+        )
+
+        if (newUri)
+          this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
+            aside: true,
+          })
+      },
+    )
   }
 
   updateSortConfig() {
@@ -195,7 +235,7 @@ export default class HypermergeExplorer {
   validateURL(input: string) {
     let url, parts
     try {
-      url = vscode.Uri.parse(input)
+      url = Uri.parse(input)
       parts = interpretHypermergeUri(url)
     } catch {
       return "invalid URL"
@@ -216,7 +256,7 @@ export default class HypermergeExplorer {
   }
 
   private show(
-    uri: vscode.Uri,
+    uri: Uri,
     opts: { preview?: boolean; aside?: boolean } = {},
   ): Thenable<void> {
     return vscode.workspace
@@ -246,7 +286,7 @@ export default class HypermergeExplorer {
     return null
   }
 
-  private currentHypermergeUri(): vscode.Uri | undefined {
+  private currentHypermergeUri(): Uri | undefined {
     const editor = vscode.window.activeTextEditor
     if (editor && editor.document.uri.scheme === "hypermerge") {
       return editor.document.uri

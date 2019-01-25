@@ -11,50 +11,34 @@ export enum SortOrder {
 
 export default abstract class BaseDocumentTreeProvider
   implements vscode.TreeDataProvider<HypermergeNodeKey> {
-  protected _onDidChangeTreeData: vscode.EventEmitter<
+  protected _onDidChangeTreeData = new vscode.EventEmitter<
     HypermergeNodeKey | undefined
-  > = new vscode.EventEmitter<HypermergeNodeKey | undefined>()
-
-  readonly onDidChangeTreeData: vscode.Event<
-    HypermergeNodeKey | undefined
-  > = this._onDidChangeTreeData.event
+  >()
+  readonly onDidChangeTreeData = this._onDidChangeTreeData.event
 
   protected sortOrder: SortOrder
-  protected treeItemCache = new Map<HypermergeNodeKey, any>()
+  protected loaded = new Set<HypermergeNodeKey>()
 
   constructor(protected readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper
     this.sortOrder = SortOrder.Title
-
-    this.hypermergeWrapper.addListener("update", (uri, doc) => {
-      const details = interpretHypermergeUri(uri)
-
-      // Handle bad URLs.
-      if (!details) {
-        return { label: "<invalid hypermerge URL>" }
-      }
-
-      let { docId, keyPath } = details
-      this.treeItemCache.set(docId, doc)
-      this._onDidChangeTreeData.fire(uri.toString())
-    })
   }
+
+  public abstract async roots(): Promise<HypermergeNodeKey[]>
+  public abstract addRoot(resourceUri: string): void
+  public abstract removeRoot(resourceUri: string): void
 
   public updateSortOrder(sortOrder: SortOrder) {
     this.sortOrder = sortOrder
   }
 
-  public refresh(): any {
-    this._onDidChangeTreeData.fire()
+  public refresh(resourceUri?: string): any {
+    this._onDidChangeTreeData.fire(resourceUri)
   }
 
-  public removeRoot(resourceUri: string) {
-    const uri = vscode.Uri.parse(resourceUri)
-    this.hypermergeWrapper.removeDocumentUri(uri)
-    this._onDidChangeTreeData.fire()
-  }
-
-  public getTreeItem(element: HypermergeNodeKey): vscode.TreeItem {
+  public async getTreeItem(
+    element: HypermergeNodeKey,
+  ): Promise<vscode.TreeItem> {
     const resourceUri = vscode.Uri.parse(element)
     const details = interpretHypermergeUri(resourceUri)
 
@@ -65,51 +49,52 @@ export default abstract class BaseDocumentTreeProvider
 
     let { docId, keyPath } = details
 
-    let content = this.treeItemCache.get(docId)
+    const tooltip = docId
 
-    if (content != null) {
-      keyPath.forEach(key => {
-        if (!content.hasOwnProperty(key)) {
-          throw new Error("Invalid path in hypermerge URL.")
-        }
-        content = content[key]
+    if (!this.loaded.has(docId)) {
+      this.hypermergeWrapper.watchDocumentUri(resourceUri, doc => {
+        this.loaded.add(docId)
+        this.refresh(element)
       })
-    }
-
-    // Handle the case where we haven't loaded any content yet.
-    // TODO: Add support to show loading progress.
-    if (typeof content === "undefined") {
-      // schedule initial loading.
-      this.hypermergeWrapper.openDocumentUri(resourceUri)
 
       const collapsibleState = vscode.TreeItemCollapsibleState.None
       return {
         label: `[${docId.slice(0, 5)}] (Loading...)`,
+        tooltip,
+        id: element,
         resourceUri,
         collapsibleState,
         command: {
           command: "vscode.open",
           arguments: [resourceUri],
-          title: "Open Hypermerge Document",
+          title: "View Document",
         },
       }
     }
 
+    const doc = await this.hypermergeWrapper.openDocumentUri(resourceUri)
+
+    let content = doc
+
     let label
+    let description
     if (keyPath.length) {
       label = keyPath.pop()
     } else if (content.title) {
-      label = `[${docId.slice(0, 5)}] ${content.title}`
+      // label = `[${docId.slice(0, 5)}] ${content.title}`
+      label = `${content.title}`
+      description = docId.slice(0, 5)
     } else {
-      label = `[${docId.slice(0, 5)}] (No /title)`
+      label = `(No title)`
+      description = docId.slice(0, 5)
     }
 
     const collapsibleState =
-      content instanceof Array || content instanceof Object
+      content != null && typeof content === "object"
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
 
-    // NOTE: maybe to clever, but worth trying out.
+    // NOTE: maybe too clever, but worth trying out.
     // Makes it so that clicking on the root of a code doc opens the code
     const newUri =
       typeof content === "object" && "Source.elm" in content
@@ -118,12 +103,15 @@ export default abstract class BaseDocumentTreeProvider
 
     return {
       label,
+      id: element,
+      description,
+      tooltip,
       resourceUri,
       collapsibleState,
       command: {
         command: "vscode.open",
         arguments: [newUri],
-        title: "Open Hypermerge Document",
+        title: "View Document",
       },
     }
   }
@@ -151,31 +139,28 @@ export default abstract class BaseDocumentTreeProvider
     return null
   }
 
-  protected abstract async roots(): Promise<HypermergeNodeKey[]>
-
-  protected getDocumentChildren(
+  protected async getDocumentChildren(
     node: HypermergeNodeKey,
-  ): Thenable<HypermergeNodeKey[]> {
+  ): Promise<HypermergeNodeKey[]> {
     const uri = vscode.Uri.parse(node)
-    return this.hypermergeWrapper.openDocumentUri(uri).then(content => {
-      if (!(content instanceof Object)) {
-        return []
+
+    const content = await this.hypermergeWrapper.openDocumentUri(uri)
+
+    if (typeof content !== "object") {
+      return []
+    }
+
+    const children = Object.keys(content)
+    const childNodes = children.map(child => {
+      if (typeof content[child] === "string") {
+        const { docId = null } = this.attemptToInterpretUrl(content[child])
+
+        if (docId) return "hypermerge:/" + docId
       }
 
-      const children = Object.keys(content)
-      const childNodes = children.map(child => {
-        if (typeof content[child] === "string") {
-          const { docId = null, keyPath = [] } = this.attemptToInterpretUrl(
-            content[child],
-          )
-          if (docId) {
-            return "hypermerge:/" + docId + ""
-          }
-        }
-        // this builds a new child URL and ditches the label if it exists.
-        return new URL(node + "/" + child).toString()
-      })
-      return childNodes
+      // this builds a new child URL and ditches the label if it exists.
+      return new URL(node + "/" + child).toString()
     })
+    return childNodes
   }
 }

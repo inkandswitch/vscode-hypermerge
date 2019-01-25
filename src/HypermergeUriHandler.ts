@@ -10,6 +10,6 @@ export default class HypermergeUriHandler implements UriHandler {
   handleUri(uri: Uri) {
     const uriString = uri.path.replace(/^\//, "")
     this.output.appendLine(uriString)
-    commands.executeCommand("hypermerge.open", uriString)
+    commands.executeCommand("hypermerge.view", uriString)
   }
 }
