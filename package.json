@@ -91,14 +91,9 @@
         "title": "Preview this document"
       },
       {
-        "command": "hypermergeExplorer.createStringValue",
+        "command": "hypermergeExplorer.createKey",
         "category": "Hypermerge",
-        "title": "Create new string value"
-      },
-      {
-        "command": "hypermergeExplorer.createObjectValue",
-        "category": "Hypermerge",
-        "title": "Create new object value"
+        "title": "Create new key"
       }
     ],
     "menus": {
@@ -107,11 +102,7 @@
           "command": "hypermergeExplorer.register"
         },
         {
-          "command": "hypermergeExplorer.createStringValue",
-          "when": "resourceScheme == hypermerge"
-        },
-        {
-          "command": "hypermergeExplorer.createObjectValue",
+          "command": "hypermergeExplorer.createKey",
           "when": "resourceScheme == hypermerge"
         }
       ],

@@ -149,7 +149,7 @@ export default class HypermergeExplorer {
     )
 
     vscode.commands.registerCommand(
-      "hypermergeExplorer.createStringValue",
+      "hypermergeExplorer.createKey",
       async () => {
         const uri = this.currentHypermergeUri()
 
@@ -157,37 +157,7 @@ export default class HypermergeExplorer {
 
         const keyName = await vscode.window.showInputBox({
           prompt: "What should the key be called?",
-          placeHolder: "title",
-        })
-
-        if (!keyName) return
-
-        const newUri = hypermergeWrapper.changeDocumentUri(
-          uri,
-          (state: any) => {
-            if (keyName in state) return
-
-            state[keyName] = ""
-          },
-        )
-
-        if (newUri)
-          this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
-            aside: true,
-          })
-      },
-    )
-
-    vscode.commands.registerCommand(
-      "hypermergeExplorer.createObjectValue",
-      async () => {
-        const uri = this.currentHypermergeUri()
-
-        if (!uri) return
-
-        const keyName = await vscode.window.showInputBox({
-          prompt: "What should the key be called?",
-          placeHolder: "title",
+          placeHolder: "config",
         })
 
         if (!keyName) return

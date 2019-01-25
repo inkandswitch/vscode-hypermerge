@@ -116,17 +116,15 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
         break
       }
 
-      case "object": {
+      case "array": {
         const contents = JSON.parse(content.toString())
-        if (typeof contents !== "object" || Array.isArray(contents))
-          throw new Error("Must be an object")
+        if (!Array.isArray(contents)) throw new Error("Must be an array")
         this.hypermerge.setDocumentUri(uri, contents)
         break
       }
 
-      case "array": {
+      default: {
         const contents = JSON.parse(content.toString())
-        if (!Array.isArray(contents)) throw new Error("Must be an array")
         this.hypermerge.setDocumentUri(uri, contents)
         break
       }
