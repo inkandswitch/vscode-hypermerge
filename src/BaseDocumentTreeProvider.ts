@@ -47,14 +47,14 @@ export default abstract class BaseDocumentTreeProvider
       return { label: "<invalid hypermerge URL>" }
     }
 
-    let { docId, keyPath } = details
+    let { docId, keyPath, docUrl } = details
 
     const tooltip = docId
 
     if (!this.loaded.has(docId)) {
-      this.hypermergeWrapper.watchDocumentUri(resourceUri, doc => {
+      this.hypermergeWrapper.watchDocumentUri(vscode.Uri.parse(docUrl), doc => {
         this.loaded.add(docId)
-        this.refresh(element)
+        this.refresh(docUrl)
       })
 
       const collapsibleState = vscode.TreeItemCollapsibleState.None

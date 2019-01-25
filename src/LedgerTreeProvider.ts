@@ -8,6 +8,16 @@ import { HypermergeWrapper } from "./HypermergeWrapper"
 export { HypermergeNodeKey, SortOrder }
 
 export default class LedgerTreeProvider extends BaseDocumentTreeProvider {
+  constructor(hypermerge: HypermergeWrapper) {
+    super(hypermerge)
+
+    const { ledger }: any = this.hypermergeWrapper.repo.back.meta
+
+    ledger.on("append", () => {
+      this.refresh()
+    })
+  }
+
   public async roots(): Promise<HypermergeNodeKey[]> {
     const meta = this.hypermergeWrapper.repo.back.meta
 

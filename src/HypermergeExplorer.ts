@@ -284,12 +284,17 @@ export default class HypermergeExplorer {
     // TODO: weave this into the thenable chain
   }
 
-  private reveal(): Thenable<void> | null {
+  private async reveal(): Promise<void> {
     const node = this.getNode()
-    if (node) {
+
+    if (!node) return
+    const roots = await this.documentDataProvider.roots()
+
+    if (roots.indexOf(node) > -1) {
       return this.documentView.reveal(node)
+    } else {
+      return this.ledgerView.reveal(node)
     }
-    return null
   }
 
   private findUri(uri?: string | Uri): Uri | undefined {
