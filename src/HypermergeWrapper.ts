@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import { Handle, Repo } from "hypermerge"
+import { Handle, Repo, ChangeFn } from "hypermerge"
 const raf = require("random-access-file")
 
 //const DiscoverySwarm = require("discovery-swarm");
@@ -93,6 +93,29 @@ export class HypermergeWrapper extends EventEmitter {
   exists(uri: vscode.Uri): boolean {
     const { docUrl = "" } = interpretHypermergeUri(uri) || {}
     return !!this.handles[docUrl]
+  }
+
+  changeDocumentUri(
+    uri: vscode.Uri,
+    fn: ChangeFn<any>,
+  ): vscode.Uri | undefined {
+    const { docId = "", docUrl = "", keyPath = [] } =
+      interpretHypermergeUri(uri) || {}
+
+    if (!docUrl) return
+    if (!this.handles[docUrl]) return
+
+    this.handles[docUrl].change((doc: any) => {
+      let state = this.resolveSubDocument(doc, keyPath)
+
+      while (typeof state !== "object") {
+        keyPath.pop()
+        state = this.resolveSubDocument(doc, keyPath)
+      }
+      fn(state)
+    })
+
+    return uri.with({ path: ["", docId, ...keyPath].join("/") })
   }
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {

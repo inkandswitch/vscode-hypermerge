@@ -89,12 +89,30 @@
         "command": "hypermergeExplorer.preview",
         "category": "Hypermerge",
         "title": "Preview this document"
+      },
+      {
+        "command": "hypermergeExplorer.createStringValue",
+        "category": "Hypermerge",
+        "title": "Create new string value"
+      },
+      {
+        "command": "hypermergeExplorer.createObjectValue",
+        "category": "Hypermerge",
+        "title": "Create new object value"
       }
     ],
     "menus": {
       "commandPalette": [
         {
           "command": "hypermergeExplorer.register"
+        },
+        {
+          "command": "hypermergeExplorer.createStringValue",
+          "when": "resourceScheme == hypermerge"
+        },
+        {
+          "command": "hypermergeExplorer.createObjectValue",
+          "when": "resourceScheme == hypermerge"
         }
       ],
       "view/title": [

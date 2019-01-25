@@ -49,7 +49,7 @@ export default class HypermergeExplorer {
       "hypermergeExplorer.preview",
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
-          this.show(vscode.Uri.parse(uriString), { preview: true })
+          this.show(vscode.Uri.parse(uriString), { preview: true, aside: true })
         }
       },
     )
@@ -147,6 +147,65 @@ export default class HypermergeExplorer {
     vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
       this.reveal(),
     )
+
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.createStringValue",
+      async () => {
+        const uri = this.currentHypermergeUri()
+
+        if (!uri) return
+
+        const keyName = await vscode.window.showInputBox({
+          prompt: "What should the key be called?",
+          placeHolder: "title",
+        })
+
+        if (!keyName) return
+
+        const newUri = hypermergeWrapper.changeDocumentUri(
+          uri,
+          (state: any) => {
+            if (keyName in state) return
+
+            state[keyName] = ""
+          },
+        )
+
+        if (newUri)
+          this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
+            aside: true,
+          })
+      },
+    )
+
+    vscode.commands.registerCommand(
+      "hypermergeExplorer.createObjectValue",
+      async () => {
+        const uri = this.currentHypermergeUri()
+
+        if (!uri) return
+
+        const keyName = await vscode.window.showInputBox({
+          prompt: "What should the key be called?",
+          placeHolder: "title",
+        })
+
+        if (!keyName) return
+
+        const newUri = hypermergeWrapper.changeDocumentUri(
+          uri,
+          (state: any) => {
+            if (keyName in state) return
+            state[keyName] = {}
+          },
+        )
+
+        if (newUri)
+          this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
+            aside: true,
+          })
+      },
+    )
   }
 
   updateSortConfig() {
@@ -184,14 +243,14 @@ export default class HypermergeExplorer {
 
   private show(
     uri: vscode.Uri,
-    opts: { preview?: boolean } = {},
+    opts: { preview?: boolean; aside?: boolean } = {},
   ): Thenable<void> {
     return vscode.workspace
       .openTextDocument(uri)
       .then(doc => {
         vscode.window.showTextDocument(doc, {
           preserveFocus: opts.preview,
-          viewColumn: opts.preview ? 2 : undefined,
+          viewColumn: opts.aside ? 2 : undefined,
         })
       })
       .then(
@@ -211,6 +270,15 @@ export default class HypermergeExplorer {
       return this.hypermergeViewer.reveal(node)
     }
     return null
+  }
+
+  private currentHypermergeUri(): vscode.Uri | undefined {
+    const editor = vscode.window.activeTextEditor
+    if (editor && editor.document.uri.scheme === "hypermerge") {
+      return editor.document.uri
+    } else {
+      // return current selected tree node
+    }
   }
 
   private getNode(): HypermergeNodeKey | null {
