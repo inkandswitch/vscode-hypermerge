@@ -53,7 +53,7 @@
     },
     "commands": [
       {
-        "command": "hypermergeExplorer.register",
+        "command": "hypermerge.register",
         "category": "Hypermerge",
         "title": "Open document",
         "icon": {
@@ -62,7 +62,7 @@
         }
       },
       {
-        "command": "hypermergeExplorer.create",
+        "command": "hypermerge.create",
         "category": "Hypermerge",
         "title": "Create document",
         "icon": {
@@ -71,37 +71,37 @@
         }
       },
       {
-        "command": "hypermergeExplorer.remove",
+        "command": "hypermerge.remove",
         "category": "Hypermerge",
         "title": "Remove document"
       },
       {
-        "command": "hypermergeExplorer.copyUrl",
+        "command": "hypermerge.copyUrl",
         "category": "Hypermerge",
         "title": "Copy document URL"
       },
       {
-        "command": "hypermergeExplorer.forkUrl",
+        "command": "hypermerge.forkUrl",
         "category": "Hypermerge",
         "title": "Create a fork of this document"
       },
       {
-        "command": "hypermergeExplorer.followUrl",
+        "command": "hypermerge.followUrl",
         "category": "Hypermerge",
         "title": "Create a follower of this document"
       },
       {
-        "command": "hypermergeExplorer.open",
+        "command": "hypermerge.open",
         "category": "Hypermerge",
         "title": "View document"
       },
       {
-        "command": "hypermergeExplorer.preview",
+        "command": "hypermerge.preview",
         "category": "Hypermerge",
         "title": "Preview this document"
       },
       {
-        "command": "hypermergeExplorer.createKey",
+        "command": "hypermerge.createKey",
         "category": "Hypermerge",
         "title": "Create new key"
       }
@@ -109,44 +109,44 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "hypermergeExplorer.register"
+          "command": "hypermerge.register"
         },
         {
-          "command": "hypermergeExplorer.createKey",
+          "command": "hypermerge.createKey",
           "when": "resourceScheme == hypermerge"
         }
       ],
       "view/title": [
         {
-          "command": "hypermergeExplorer.register",
+          "command": "hypermerge.register",
           "when": "view == hypermergeExplorer",
           "group": "navigation"
         },
         {
-          "command": "hypermergeExplorer.create",
+          "command": "hypermerge.create",
           "when": "view == hypermergeExplorer",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "hypermergeExplorer.open",
+          "command": "hypermerge.open",
           "when": "view == hypermergeExplorer"
         },
         {
-          "command": "hypermergeExplorer.remove",
+          "command": "hypermerge.remove",
           "when": "view == hypermergeExplorer"
         },
         {
-          "command": "hypermergeExplorer.copyUrl",
+          "command": "hypermerge.copyUrl",
           "when": "view == hypermergeExplorer"
         },
         {
-          "command": "hypermergeExplorer.forkUrl",
+          "command": "hypermerge.forkUrl",
           "when": "view == hypermergeExplorer"
         },
         {
-          "command": "hypermergeExplorer.followUrl",
+          "command": "hypermerge.followUrl",
           "when": "view == hypermergeExplorer"
         }
       ]

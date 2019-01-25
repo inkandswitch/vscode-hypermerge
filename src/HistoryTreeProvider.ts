@@ -63,7 +63,7 @@ export default class HistoryTreeProvider
       resourceUri,
       collapsibleState,
       command: {
-        command: "hypermergeExplorer.preview",
+        command: "hypermerge.preview",
         arguments: [resourceUri],
         title: "Open Hypermerge Document",
       },

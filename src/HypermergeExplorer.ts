@@ -40,24 +40,21 @@ export default class HypermergeExplorer {
     })
 
     vscode.commands.registerCommand(
-      "hypermergeExplorer.refresh",
+      "hypermerge.refresh",
       () => this.ledgerDataProvider.refresh(),
       this.documentDataProvider.refresh(),
     )
 
-    vscode.commands.registerCommand(
-      "hypermergeExplorer.open",
-      (uriString: string) => {
-        if (!this.validateURL(uriString)) {
-          this.ledgerDataProvider.refresh()
-          this.documentDataProvider.refresh()
-          this.show(vscode.Uri.parse(uriString))
-        }
-      },
-    )
+    vscode.commands.registerCommand("hypermerge.open", (uriString: string) => {
+      if (!this.validateURL(uriString)) {
+        this.ledgerDataProvider.refresh()
+        this.documentDataProvider.refresh()
+        this.show(vscode.Uri.parse(uriString))
+      }
+    })
 
     vscode.commands.registerCommand(
-      "hypermergeExplorer.preview",
+      "hypermerge.preview",
       (uriString: string) => {
         if (!this.validateURL(uriString)) {
           this.show(vscode.Uri.parse(uriString), { preview: true, aside: true })
@@ -65,7 +62,7 @@ export default class HypermergeExplorer {
       },
     )
 
-    vscode.commands.registerCommand("hypermergeExplorer.create", async () => {
+    vscode.commands.registerCommand("hypermerge.create", async () => {
       const uri = await hypermergeWrapper.createDocumentUri()
       if (uri) {
         this.ledgerDataProvider.refresh()
@@ -74,7 +71,7 @@ export default class HypermergeExplorer {
       }
     })
 
-    vscode.commands.registerCommand("hypermergeExplorer.register", async () => {
+    vscode.commands.registerCommand("hypermerge.register", async () => {
       const uriString = await vscode.window.showInputBox({
         placeHolder: "Browse which hypermerge URL?",
         validateInput: this.validateURL,
@@ -107,43 +104,34 @@ export default class HypermergeExplorer {
       }
     })
 
-    vscode.commands.registerCommand(
-      "hypermergeExplorer.remove",
-      async resourceUri => {
-        // XXX TODO
-        this.ledgerDataProvider.removeRoot(resourceUri)
-        this.documentDataProvider.removeRoot(resourceUri)
-      },
-    )
+    vscode.commands.registerCommand("hypermerge.remove", async resourceUri => {
+      // XXX TODO
+      this.ledgerDataProvider.removeRoot(resourceUri)
+      this.documentDataProvider.removeRoot(resourceUri)
+    })
+
+    vscode.commands.registerCommand("hypermerge.copyUrl", async resourceUrl => {
+      const url = vscode.Uri.parse(resourceUrl)
+      clipboardy.writeSync(url.toString())
+    })
+
+    vscode.commands.registerCommand("hypermerge.forkUrl", async resourceUrl => {
+      const forkedUrl = vscode.Uri.parse(resourceUrl)
+      const newUrl = await hypermergeWrapper.forkDocumentUri(forkedUrl)
+      if (!newUrl) {
+        // probably oughta print an error
+        return
+      }
+
+      const uriString = newUrl.toString()
+      if (uriString) {
+        this.ledgerDataProvider.refresh()
+        this.documentDataProvider.refresh()
+      }
+    })
 
     vscode.commands.registerCommand(
-      "hypermergeExplorer.copyUrl",
-      async resourceUrl => {
-        const url = vscode.Uri.parse(resourceUrl)
-        clipboardy.writeSync(url.toString())
-      },
-    )
-
-    vscode.commands.registerCommand(
-      "hypermergeExplorer.forkUrl",
-      async resourceUrl => {
-        const forkedUrl = vscode.Uri.parse(resourceUrl)
-        const newUrl = await hypermergeWrapper.forkDocumentUri(forkedUrl)
-        if (!newUrl) {
-          // probably oughta print an error
-          return
-        }
-
-        const uriString = newUrl.toString()
-        if (uriString) {
-          this.ledgerDataProvider.refresh()
-          this.documentDataProvider.refresh()
-        }
-      },
-    )
-
-    vscode.commands.registerCommand(
-      "hypermergeExplorer.followUrl",
+      "hypermerge.followUrl",
       async resourceUrl => {
         const followedUrl = vscode.Uri.parse(resourceUrl)
         const newUrl = await hypermergeWrapper.followDocumentUri(followedUrl)
@@ -160,38 +148,32 @@ export default class HypermergeExplorer {
       },
     )
 
-    vscode.commands.registerCommand("hypermergeExplorer.revealResource", () =>
+    vscode.commands.registerCommand("hypermerge.revealResource", () =>
       this.reveal(),
     )
 
-    vscode.commands.registerCommand(
-      "hypermergeExplorer.createKey",
-      async () => {
-        const uri = this.currentHypermergeUri()
+    vscode.commands.registerCommand("hypermerge.createKey", async () => {
+      const uri = this.currentHypermergeUri()
 
-        if (!uri) return
+      if (!uri) return
 
-        const keyName = await vscode.window.showInputBox({
-          prompt: "What should the key be called?",
-          placeHolder: "config",
+      const keyName = await vscode.window.showInputBox({
+        prompt: "What should the key be called?",
+        placeHolder: "config",
+      })
+
+      if (!keyName) return
+
+      const newUri = hypermergeWrapper.changeDocumentUri(uri, (state: any) => {
+        if (keyName in state) return
+        state[keyName] = {}
+      })
+
+      if (newUri)
+        this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
+          aside: true,
         })
-
-        if (!keyName) return
-
-        const newUri = hypermergeWrapper.changeDocumentUri(
-          uri,
-          (state: any) => {
-            if (keyName in state) return
-            state[keyName] = {}
-          },
-        )
-
-        if (newUri)
-          this.show(newUri.with({ path: newUri.path + "/" + keyName }), {
-            aside: true,
-          })
-      },
-    )
+    })
   }
 
   updateSortConfig() {
