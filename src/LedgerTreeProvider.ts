@@ -3,6 +3,7 @@ import BaseDocumentTreeProvider, {
   SortOrder,
 } from "./BaseDocumentTreeProvider"
 import { Uri } from "vscode"
+import { HypermergeWrapper } from "./HypermergeWrapper"
 
 export { HypermergeNodeKey, SortOrder }
 
@@ -24,11 +25,12 @@ export default class LedgerTreeProvider extends BaseDocumentTreeProvider {
 
   public addRoot(resourceUri: string) {
     this.hypermergeWrapper.openDocumentUri(Uri.parse(resourceUri))
+    this.refresh()
   }
 
   public removeRoot(resourceUri: string) {
     const uri = Uri.parse(resourceUri)
     this.hypermergeWrapper.removeDocumentUri(uri)
-    this.refresh(resourceUri)
+    this.refresh()
   }
 }

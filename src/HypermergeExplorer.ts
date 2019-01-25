@@ -40,11 +40,10 @@ export default class HypermergeExplorer {
       treeDataProvider: this.documentDataProvider,
     })
 
-    vscode.commands.registerCommand(
-      "hypermerge.refresh",
-      () => this.ledgerDataProvider.refresh(),
-      this.documentDataProvider.refresh(),
-    )
+    vscode.commands.registerCommand("hypermerge.refresh", () => {
+      this.ledgerDataProvider.refresh()
+      this.documentDataProvider.refresh()
+    })
 
     vscode.commands.registerCommand(
       "hypermerge.preview",
@@ -71,7 +70,6 @@ export default class HypermergeExplorer {
       const uri = hypermergeWrapper.createDocumentUri()
 
       this.documentDataProvider.addRoot(uri.toString())
-
       this.ledgerDataProvider.refresh() // HACK
 
       this.show(uri)
@@ -81,6 +79,7 @@ export default class HypermergeExplorer {
       const uri = this.findUri(url)
       if (!uri) return
 
+      this.ledgerDataProvider.addRoot(uri.toString())
       this.documentDataProvider.addRoot(uri.toString())
       this.show(uri)
     })
@@ -110,6 +109,7 @@ export default class HypermergeExplorer {
           throw new Error("invalid Farm URL")
         }
 
+        this.ledgerDataProvider.addRoot(parsedUri.toString())
         this.documentDataProvider.addRoot(parsedUri.toString())
 
         this.show(Uri.parse("hypermerge:/" + codeId + "/Source.elm"))

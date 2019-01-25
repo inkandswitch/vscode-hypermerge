@@ -137,6 +137,11 @@
         "command": "hypermerge.createKey",
         "category": "Hypermerge",
         "title": "Create new key"
+      },
+      {
+        "command": "hypermerge.refresh",
+        "category": "Hypermerge",
+        "title": "Refresh documents"
       }
     ],
     "menus": {
