@@ -31,10 +31,11 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
   // --- manage file metadata
 
   stat(uri: vscode.Uri): Thenable<vscode.FileStat> {
-    if (!this.hypermerge.exists(uri)) {
-      console.log(`Stating ${uri.toString()} - file not found`)
-      throw vscode.FileSystemError.FileNotFound(uri)
-    }
+    // if (!this.hypermerge.exists(uri)) {
+    //   console.log(`Stating ${uri.toString()} - file not found`)
+    //   throw vscode.FileSystemError.FileNotFound(uri)
+    // }
+
     return this.hypermerge
       .openDocumentUri(uri)
       .then(document => {
