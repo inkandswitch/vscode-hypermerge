@@ -1,5 +1,5 @@
 import { Disposable, OutputChannel, workspace } from "vscode"
-import Debug from "debug"
+import Debug from "hypermerge/node_modules/debug"
 import { format } from "util"
 import DisposableCollection from "./DisposableCollection"
 
