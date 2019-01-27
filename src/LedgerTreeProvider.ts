@@ -23,11 +23,7 @@ export default class LedgerTreeProvider extends BaseDocumentTreeProvider {
 
     return new Promise<HypermergeNodeKey[]>(resolve => {
       meta.readyQ.push(() => {
-        const nodeKeys = meta
-          .docs()
-          .map(id => "hypermerge:/" + id)
-          .sort()
-
+        const nodeKeys = [...meta.docs].map(id => "hypermerge:/" + id).sort()
         resolve(nodeKeys)
       })
     })
