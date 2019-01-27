@@ -1,4 +1,5 @@
 import * as vscode from "vscode"
+import { Uri } from "vscode"
 import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper"
 import { URL } from "url"
 
@@ -39,7 +40,7 @@ export default abstract class BaseDocumentTreeProvider
   public async getTreeItem(
     element: HypermergeNodeKey,
   ): Promise<vscode.TreeItem> {
-    const resourceUri = vscode.Uri.parse(element)
+    const resourceUri = Uri.parse(element)
     const details = interpretHypermergeUri(resourceUri)
 
     // Handle bad URLs.
@@ -49,7 +50,8 @@ export default abstract class BaseDocumentTreeProvider
 
     let { docId, keyPath, docUrl } = details
 
-    const tooltip = docId
+    let tooltip = element
+    let description = docId.slice(0, 5)
 
     if (!this.loaded.has(docId)) {
       this.hypermergeWrapper.watchDocumentUri(vscode.Uri.parse(docUrl), doc => {
@@ -59,7 +61,8 @@ export default abstract class BaseDocumentTreeProvider
 
       const collapsibleState = vscode.TreeItemCollapsibleState.None
       return {
-        label: `[${docId.slice(0, 5)}] (Loading...)`,
+        label: `(Loading...)`,
+        description,
         tooltip,
         id: element,
         resourceUri,
@@ -77,16 +80,13 @@ export default abstract class BaseDocumentTreeProvider
     let content = doc
 
     let label
-    let description
     if (keyPath.length) {
       label = keyPath.pop()
     } else if (content.title) {
       // label = `[${docId.slice(0, 5)}] ${content.title}`
       label = `${content.title}`
-      description = docId.slice(0, 5)
     } else {
       label = `(No title)`
-      description = docId.slice(0, 5)
     }
 
     const collapsibleState =
@@ -120,7 +120,7 @@ export default abstract class BaseDocumentTreeProvider
     if (str.length > 2000 || str.includes("\n")) return {}
 
     try {
-      return interpretHypermergeUri(vscode.Uri.parse(str)) || {}
+      return interpretHypermergeUri(Uri.parse(str)) || {}
     } catch (e) {
       return {}
     }
@@ -142,7 +142,7 @@ export default abstract class BaseDocumentTreeProvider
   protected async getDocumentChildren(
     node: HypermergeNodeKey,
   ): Promise<HypermergeNodeKey[]> {
-    const uri = vscode.Uri.parse(node)
+    const uri = Uri.parse(node)
 
     const content = await this.hypermergeWrapper.openDocumentUri(uri)
 

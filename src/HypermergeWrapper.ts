@@ -166,27 +166,31 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   forkDocumentUri(forkedDoc: vscode.Uri): vscode.Uri | null {
-    const { docUrl = "", keyPath = [] } =
-      interpretHypermergeUri(forkedDoc) || {}
-    if (!docUrl) {
-      return null
-    }
+    throw new Error("Not implemented, yet.")
 
-    const forkUrl = this.repo.fork(docUrl)
-    return vscode.Uri.parse(forkUrl)
+    // const { docUrl = "", keyPath = [] } =
+    //   interpretHypermergeUri(forkedDoc) || {}
+    // if (!docUrl) {
+    //   return null
+    // }
+
+    // const forkUrl = this.repo.fork(docUrl)
+    // return vscode.Uri.parse(forkUrl)
   }
 
   followDocumentUri(followedDoc: vscode.Uri): vscode.Uri | null {
-    const { docUrl = "", keyPath = [] } =
-      interpretHypermergeUri(followedDoc) || {}
+    throw new Error("Not implemented, yet.")
 
-    if (!docUrl) {
-      return null
-    }
+    // const { docUrl = "", keyPath = [] } =
+    //   interpretHypermergeUri(followedDoc) || {}
 
-    const followId = this.repo.create()
-    this.repo.follow(followId, docUrl)
-    return vscode.Uri.parse(docUrl)
+    // if (!docUrl) {
+    //   return null
+    // }
+
+    // const followId = this.repo.create()
+    // this.repo.follow(followId, docUrl)
+    // return vscode.Uri.parse(docUrl)
   }
 
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
