@@ -64,7 +64,7 @@ export default abstract class BaseDocumentTreeProvider
         label: `(Loading...)`,
         description,
         tooltip,
-        id: element,
+        // id: element,
         resourceUri,
         collapsibleState,
         command: {
@@ -103,7 +103,7 @@ export default abstract class BaseDocumentTreeProvider
 
     return {
       label,
-      id: element,
+      // id: element,
       description,
       tooltip,
       resourceUri,
