@@ -109,8 +109,8 @@ export default class HypermergeExplorer {
           throw new Error("invalid Farm URL")
         }
 
-        this.ledgerDataProvider.addRoot(parsedUri.toString())
-        this.documentDataProvider.addRoot(parsedUri.toString())
+        this.documentDataProvider.addRoot("hypermerge:/" + codeId)
+        this.documentDataProvider.addRoot("hypermerge:/" + dataId)
 
         this.show(Uri.parse("hypermerge:/" + codeId + "/Source.elm"))
         this.show(Uri.parse("hypermerge:/" + dataId), { aside: true })
