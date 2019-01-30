@@ -94,12 +94,13 @@ export default abstract class BaseDocumentTreeProvider
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
 
-    // NOTE: maybe too clever, but worth trying out.
-    // Makes it so that clicking on the root of a code doc opens the code
-    const newUri =
-      typeof content === "object" && "Source.elm" in content
-        ? resourceUri.with({ path: resourceUri.path + "/Source.elm" })
-        : resourceUri
+    // // NOTE: maybe too clever, but worth trying out.
+    // // Makes it so that clicking on the root of a code doc opens the code
+    // const newUri =
+    //   typeof content === "object" && "Source.elm" in content
+    //     ? resourceUri.with({ path: resourceUri.path + "/Source.elm" })
+    //     : resourceUri
+    const newUri = resourceUri
 
     return {
       label,
