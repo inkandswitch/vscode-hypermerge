@@ -7,6 +7,7 @@ import {
   Range,
   Uri,
 } from "vscode"
+import { visit, getLocation } from "jsonc-parser"
 
 export default class HypermergeDocumentLinkProvider
   implements DocumentLinkProvider {
@@ -20,12 +21,39 @@ export default class HypermergeDocumentLinkProvider
     let match: RegExpExecArray | null
 
     while ((match = regex.exec(text))) {
-      const start = document.positionAt(match.index)
-      const end = document.positionAt(match.index + match[0].length)
-      const range = new Range(start, end)
+      const range = getRange(document, match.index, match[0].length)
       links.push(new DocumentLink(range, Uri.parse(match[0])))
+    }
+
+    if (document.uri.scheme === "hypermerge" && isJson(document)) {
+      try {
+        visit(text, {
+          onObjectProperty(property, offset, length) {
+            const location = getLocation(text, offset)
+            const path = document.uri.path + "/" + location.path.join("/")
+            const range = getRange(document, offset + 1, length - 2)
+            links.push(new DocumentLink(range, document.uri.with({ path })))
+          },
+        })
+      } catch {
+        // Do nothing
+      }
     }
 
     return links
   }
+}
+
+function getRange(
+  document: TextDocument,
+  offset: number,
+  length: number,
+): Range {
+  const start = document.positionAt(offset)
+  const end = document.positionAt(offset + length)
+  return new Range(start, end)
+}
+
+function isJson(document: TextDocument): boolean {
+  return document.languageId === "json" || document.languageId === "jsonc"
 }
