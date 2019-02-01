@@ -130,30 +130,35 @@ export default class HypermergeExplorer implements vscode.Disposable {
       }
     })
 
-    vscode.commands.registerCommand("hypermerge.open", async () => {
-      const uriString = await vscode.window.showInputBox({
-        placeHolder: "Browse which hypermerge URL?",
-        validateInput: this.validateURL,
-      })
-
-      if (!uriString) return
-
-      const parsedUri = Uri.parse(uriString)
-
-      if (parsedUri.scheme === "farm" || parsedUri.scheme === "realm") {
-        const [_, codeId, dataId]: string[] =
-          uriString.match("(?:farm|realm)://(.+?)/([^/]+?)$") || []
-
-        if (!codeId || !dataId) {
-          throw new Error("invalid Farm URL")
+    vscode.commands.registerCommand(
+      "hypermerge.open",
+      async (uriString?: string) => {
+        if (!uriString) {
+          uriString = await vscode.window.showInputBox({
+            placeHolder: "Browse which hypermerge URL?",
+            validateInput: this.validateURL,
+          })
         }
 
-        this.show(Uri.parse("hypermerge:/" + codeId + "/Source.elm"))
-        this.show(Uri.parse("hypermerge:/" + dataId), { aside: true })
-      } else {
-        this.show(parsedUri)
-      }
-    })
+        if (!uriString) return
+
+        const parsedUri = Uri.parse(uriString)
+
+        if (parsedUri.scheme === "farm" || parsedUri.scheme === "realm") {
+          const [_, codeId, dataId]: string[] =
+            uriString.match("(?:farm|realm)://(.+?)/([^/]+?)$") || []
+
+          if (!codeId || !dataId) {
+            throw new Error("invalid Farm URL")
+          }
+
+          this.show(Uri.parse("hypermerge:/" + codeId + "/Source.elm"))
+          this.show(Uri.parse("hypermerge:/" + dataId), { aside: true })
+        } else {
+          this.show(parsedUri)
+        }
+      },
+    )
 
     vscode.commands.registerCommand("hypermerge.destroy", resourceUri => {
       this.ledgerDataProvider.removeRoot(resourceUri)

@@ -8,8 +8,8 @@ export default class HypermergeUriHandler implements UriHandler {
   }
 
   handleUri(uri: Uri) {
-    const uriString = uri.path.replace(/^\//, "")
-    this.output.appendLine(uriString)
-    commands.executeCommand("hypermerge.view", uriString)
+    const uriString = decodeURIComponent(uri.path.replace(/^\//, ""))
+    this.output.appendLine(`handling external uri: ${uriString}`)
+    commands.executeCommand("hypermerge.open", uriString)
   }
 }
