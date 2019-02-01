@@ -4,7 +4,6 @@ import DebugManager from "./DebugManager"
 import HypermergeFS from "./HypermergeFS"
 import HypercoreFS from "./HypercoreFS"
 import HypermergeExplorer from "./HypermergeExplorer"
-import DetailsViewContainer from "./DetailsViewContainer"
 import { HypermergeWrapper } from "./HypermergeWrapper"
 import HypermergeUriHandler from "./HypermergeUriHandler"
 import HypermergeDocumentLinkProvider from "./DocumentLinkProvider"
@@ -72,12 +71,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.registerUriHandler(new HypermergeUriHandler(output)),
 
-    new DetailsViewContainer(hypermergeWrapper),
+    new HypermergeExplorer(context, hypermergeWrapper),
   )
 
   // self-registers
   new DiagnosticCollector(context, hypermergeWrapper)
-  new HypermergeExplorer(context, hypermergeWrapper)
 
   return {
     repo: hypermergeWrapper.repo,

@@ -8,29 +8,49 @@ import DisposableCollection from "./DisposableCollection"
 
 export default class DetailsViewContainer implements vscode.Disposable {
   subscriptions = new DisposableCollection()
+  feedDataProvider = new FeedTreeProvider(this.hypermergeWrapper)
+  metadataDataProvider = new MetadataTreeProvider(this.hypermergeWrapper)
+  historyDataProvider = new HistoryTreeProvider(this.hypermergeWrapper)
 
-  constructor(hypermergeWrapper: HypermergeWrapper) {
-    const metadataDataProvider = new MetadataTreeProvider(hypermergeWrapper)
-
+  constructor(private hypermergeWrapper: HypermergeWrapper) {
     vscode.window.createTreeView("hypermergeMetadata", {
-      treeDataProvider: metadataDataProvider,
+      treeDataProvider: this.metadataDataProvider,
     })
 
-    const historyDataProvider = new HistoryTreeProvider(hypermergeWrapper)
+    const feedView = vscode.window.createTreeView("hypermergeFeeds", {
+      treeDataProvider: this.feedDataProvider,
+    })
 
     vscode.window.createTreeView("hypermergeHistory", {
-      treeDataProvider: historyDataProvider,
+      treeDataProvider: this.historyDataProvider,
     })
 
-    const feedDataProvider = new FeedTreeProvider(hypermergeWrapper)
-    const feedView = vscode.window.createTreeView("hypermergeFeeds", {
-      treeDataProvider: feedDataProvider,
-    })
+    this.subscriptions.push(
+      feedView,
+      this.feedDataProvider,
+      vscode.window.onDidChangeActiveTextEditor(() =>
+        this.onActiveEditorChanged(),
+      ),
+    )
 
-    this.subscriptions.push(feedView, feedDataProvider)
+    this.onActiveEditorChanged() // call it the first time on startup
+  }
+
+  show(uri: vscode.Uri) {
+    this.feedDataProvider.show(uri)
+    this.metadataDataProvider.show(uri)
+    this.historyDataProvider.show(uri)
   }
 
   dispose() {
     this.subscriptions.dispose()
+  }
+
+  private onActiveEditorChanged() {
+    const { activeTextEditor } = vscode.window
+
+    if (!activeTextEditor) return
+
+    this.show(activeTextEditor.document.uri)
   }
 }

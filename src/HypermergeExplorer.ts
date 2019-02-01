@@ -6,11 +6,15 @@ import DocumentTreeProvider, {
   HypermergeNodeKey,
 } from "./DocumentTreeProvider"
 import LedgerTreeProvider from "./LedgerTreeProvider"
+import DisposableCollection from "./DisposableCollection"
+import DetailsViewContainer from "./DetailsViewContainer"
 const clipboardy = require("clipboardy")
 
-export default class HypermergeExplorer {
+export default class HypermergeExplorer implements vscode.Disposable {
   // TODO:
   // better error reporting on invalid json
+  subscriptions = new DisposableCollection()
+  private detailsView: DetailsViewContainer
   private ledgerView: vscode.TreeView<HypermergeNodeKey>
   private documentView: vscode.TreeView<HypermergeNodeKey>
   private ledgerDataProvider: LedgerTreeProvider
@@ -20,8 +24,11 @@ export default class HypermergeExplorer {
     context: vscode.ExtensionContext,
     hypermergeWrapper: HypermergeWrapper,
   ) {
+    this.detailsView = new DetailsViewContainer(hypermergeWrapper)
     this.ledgerDataProvider = new LedgerTreeProvider(hypermergeWrapper)
     this.documentDataProvider = new DocumentTreeProvider(hypermergeWrapper)
+
+    this.subscriptions.push(this.detailsView)
 
     // XXX disposable
     vscode.workspace.onDidChangeConfiguration(e => {
@@ -54,11 +61,14 @@ export default class HypermergeExplorer {
       },
     )
 
-    vscode.commands.registerCommand("hypermerge.view", (uriString: string) => {
-      if (!this.validateURL(uriString)) {
-        this.show(Uri.parse(uriString))
-      }
-    })
+    vscode.commands.registerCommand(
+      "hypermerge.view",
+      (uriString: string, opts?: any) => {
+        if (!this.validateURL(uriString)) {
+          this.show(Uri.parse(uriString), opts)
+        }
+      },
+    )
 
     vscode.commands.registerCommand("hypermerge.create", async () => {
       const uri = hypermergeWrapper.createDocumentUri()
@@ -265,6 +275,8 @@ export default class HypermergeExplorer {
     uri: Uri,
     opts: { preview?: boolean; aside?: boolean } = {},
   ): Thenable<void> {
+    this.detailsView.show(uri)
+
     return vscode.workspace
       .openTextDocument(uri)
       .then(doc => {
@@ -317,5 +329,9 @@ export default class HypermergeExplorer {
       }
     }
     return null
+  }
+
+  dispose() {
+    this.subscriptions.dispose()
   }
 }

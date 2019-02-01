@@ -68,8 +68,8 @@ export default abstract class BaseDocumentTreeProvider
         resourceUri,
         collapsibleState,
         command: {
-          command: "vscode.open",
-          arguments: [resourceUri],
+          command: "hypermerge.view",
+          arguments: [resourceUri.toString(), { preview: true }],
           title: "View Document",
         },
       }
@@ -110,8 +110,8 @@ export default abstract class BaseDocumentTreeProvider
       resourceUri,
       collapsibleState,
       command: {
-        command: "vscode.open",
-        arguments: [newUri],
+        command: "hypermerge.view",
+        arguments: [newUri.toString(), { preview: true }],
         title: "View Document",
       },
     }

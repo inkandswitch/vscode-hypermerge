@@ -17,11 +17,6 @@ export default class MetadataTreeProvider
   constructor(private readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper
 
-    vscode.window.onDidChangeActiveTextEditor(() =>
-      this.onActiveEditorChanged(),
-    )
-    this.onActiveEditorChanged() // call it the first time on startup
-
     // XXX looks like this might be broken
     this.hypermergeWrapper.addListener("update", updatedDocumentUri => {
       if (
@@ -33,14 +28,10 @@ export default class MetadataTreeProvider
     })
   }
 
-  private onActiveEditorChanged(): void {
-    if (
-      vscode.window.activeTextEditor &&
-      vscode.window.activeTextEditor.document.uri.scheme === "hypermerge"
-    ) {
-      this.activeDocumentUri = vscode.window.activeTextEditor.document.uri
-      this.refresh()
-    }
+  public show(uri: vscode.Uri): void {
+    if (uri.scheme !== "hypermerge") return
+    this.activeDocumentUri = uri
+    this.refresh()
   }
 
   public refresh(key?: HypermergeMetadataKey): any {

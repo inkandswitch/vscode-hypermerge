@@ -1,14 +1,11 @@
 import {
   TreeDataProvider,
   EventEmitter,
-  Event,
   Uri,
   Disposable,
-  window,
   TreeItem,
   TreeItemCollapsibleState,
   ProviderResult,
-  ThemeIcon,
 } from "vscode"
 import prettyBytes from "pretty-bytes"
 
@@ -71,10 +68,6 @@ export default class FeedTreeProvider
   private interval: NodeJS.Timeout
 
   constructor(private hypermergeWrapper: HypermergeWrapper) {
-    window.onDidChangeActiveTextEditor(() => this.onActiveEditorChanged())
-
-    this.onActiveEditorChanged() // call it the first time on startup
-
     // Fairly hacky but it seems to work just fine.
     // Feels like too much work to manage listeners for all this stuff.
     this.interval = setInterval(() => this.refresh(), 2000)
@@ -94,15 +87,11 @@ export default class FeedTreeProvider
     return details.docId
   }
 
-  private onActiveEditorChanged(): void {
-    const { activeTextEditor } = window
+  public show(uri: Uri): void {
+    if (uri.scheme !== "hypermerge") return
 
-    if (!activeTextEditor) return
-
-    if (activeTextEditor.document.uri.scheme === "hypermerge") {
-      this.activeDocumentUri = activeTextEditor.document.uri
-      this.refresh()
-    }
+    this.activeDocumentUri = uri
+    this.refresh()
   }
 
   public refresh(key?: Node): any {
@@ -126,15 +115,15 @@ export default class FeedTreeProvider
           id: `Feed/${node.actor.id}`,
         }
 
-      case "Blocks":
+      case "Blocks": {
+        const { feed } = node.actor as any
         return {
-          label: `${(<any>node.actor.feed).downloaded()} / ${
-            node.actor.feed.length
-          } Blocks`,
+          label: `${feed.downloaded(0, feed.length)} / ${feed.length} Blocks`,
           collapsibleState: State.Collapsed,
-          description: prettyBytes((<any>node.actor.feed).byteLength),
+          description: prettyBytes(feed.byteLength),
           id: `Blocks/${node.actor.id}`,
         }
+      }
 
       case "Block": {
         const resourceUri = Uri.parse(
