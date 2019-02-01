@@ -282,22 +282,18 @@ export default class HypermergeExplorer implements vscode.Disposable {
   ): Thenable<void> {
     this.detailsView.show(uri)
 
-    return vscode.workspace
-      .openTextDocument(uri)
-      .then(doc => {
-        vscode.window.showTextDocument(doc, {
-          preserveFocus: opts.preview,
-          viewColumn: opts.aside ? 2 : 1,
-        })
-      })
-      .then(
-        () => {
-          if (!opts.preview) this.reveal()
-        },
-        err => {
-          console.log(err)
-        },
-      )
+    return vscode.window.showTextDocument(uri, {
+      preserveFocus: opts.preview,
+      preview: !!opts.preview,
+      viewColumn: opts.aside ? 2 : 1,
+    }).then(
+      () => {
+        if (!opts.preview) this.reveal()
+      },
+      err => {
+        console.log(err)
+      },
+    )
     // TODO: weave this into the thenable chain
   }
 
