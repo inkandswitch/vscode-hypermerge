@@ -287,7 +287,7 @@ export default class HypermergeExplorer implements vscode.Disposable {
       .then(doc => {
         vscode.window.showTextDocument(doc, {
           preserveFocus: opts.preview,
-          viewColumn: opts.aside ? 2 : undefined,
+          viewColumn: opts.aside ? 2 : 1,
         })
       })
       .then(
