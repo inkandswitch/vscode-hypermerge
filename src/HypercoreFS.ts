@@ -3,6 +3,7 @@
 import * as vscode from "vscode"
 import { HypermergeWrapper } from "./HypermergeWrapper"
 import { RepoBackend } from "hypermerge"
+import * as Block from "hypermerge/dist/Block"
 
 export default class HypercoreFS implements vscode.FileSystemProvider {
   back: RepoBackend
@@ -66,7 +67,7 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
           if (!data) return rej(new Error("Missing data"))
 
           try {
-            const obj = JSON.parse(data.toString())
+            const obj = Block.unpack(data)
             data = Buffer.from(JSON.stringify(obj, undefined, 2))
           } catch (e) {
             // not JSON data. should be fine to just continue
