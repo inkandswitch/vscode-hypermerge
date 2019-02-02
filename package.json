@@ -2,7 +2,7 @@
   "name": "hypermerge",
   "displayName": "Hypermerge",
   "description": "Browse and edit a Hypermerge document tree.",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "publisher": "inkandswitch",
   "repository": {
     "url": "https://github.com/inkandswitch/vscode-hypermerge.git",
