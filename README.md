@@ -2,18 +2,13 @@
 
 Browse & edit Hypermerge documents. This VSCode extension was built to work with [Farm][farm] but should be mostly compatible with Capstone, PushPin, and other Hypermerge projects (though support is subject to the vagaries of research software version drift.)
 
-- Install the Hypermerge VScode extension. (It is listed in the VSCode extension store.)
-- In the File / Documents tab, you should now see a HypermergeFS tab.
-- Hover over the title of that tab, click the [...] icon, select "Open Document" and paste in a hypermerge document link.
-- Alternately, create a new hypermerge document.
-
-If you want to work on, debug, or develop on the VSCode extension follow these steps instead:
+This extension is not currently available in the VSCode extension marketplace because it requires platform-specific native dependencies. The best way to experience it is to:
 
 - Check out this repository.
 - Run `yarn` to install dependencies.
-- Open the repository in vscode (e.g. `$ code .`)
+- Open the repository in vscode (e.g. `$ code .` or just via `Open Folder...`)
 - Go to Debug -> Start Debugging (F5) in the menu.
-- A second, new VSCode window will open running the extension version you just built. You'll be able to put breakpoints in the code and see debug output in your original window. The new window will be labeled \[Extension Development\] so you can recognize it.
+- A second, new VSCode window will open running the extension version you just built. You'll be able to put breakpoints in the code and see debug output in your original window. The new window's title will include \[Extension Development\] so you can recognize it.
 
 You're off to the races!
 
@@ -25,7 +20,7 @@ Clicking on that icon will show you several subpanels. The first and most import
 
 ### HypermergeFS
 
-From this view you can load and traverse documents. Documents appear primarily at the root of this tree structure and are prefixed by the first five characters of their name. (For example: `[2Kgzz] Editable Title Code`.) You can click any document listed to open it as a text buffer in the main window.
+From this view you can load and traverse documents. Documents appear primarily at the root of this tree structure and are prefixed by the first five characters of their name. (For example: `Editable Title Code [2Kgzz]`.) You can click any document listed to open it as a text buffer in the main window.
 
 Sub-documents can be displayed as buffers as well, and leaf nodes -- plain strings, for example -- will appear as simple text buffers for editing.
 
