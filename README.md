@@ -42,21 +42,23 @@ You'll want to [follow the instructions](https://code.visualstudio.com/docs/exte
 
 *Note: Releases with binary dependencies like iltorb and utp-native don't work very well in the VSCode extension marketplace at the moment, since you can only include a single platform's binaries there.*
 
-## UTP-native binary dependency
+## UTP-native / iltorb binary dependencies
 
-One of the trickier requirements of this project is a C library called `utp-native`. UTP is a high performance protocol similar to TCP but carried over UDP originally designed to improve Bittorrent bandwidth sharing. The `utp-native` package for Node should be automatically compiled during yarn invocation, but if you run into issues with it you might try the following commands:
-
-```
-yarn add utp-native --runtime=electron --target=3.1.2 --disturl=https://atom.io/download/at
-om-shell --build-from-source
-```
-
-or if yarn won't cooperate,
+One of the trickier requirements of this project are a pair of C libraries called `utp-native` and `iltorb`. UTP is a high performance protocol similar to TCP but carried over UDP originally designed to improve Bittorrent bandwidth sharing. The `iltorb` library is an implementation of Brotli, a fast compression algorithm. Both libraries should be automatically compiled during yarn invocation, but if you run into issues with it you might try the following commands:
 
 ```
 $ npx electron-rebuild --version 3.1.2 -f
 ```
 
-This trickiness is required (for now) because the UTP native version has to match the exact binary version of Node used by Electron or the system will either crash on startup or the network stack refuse to initialize.
+or if that's not working,
+
+```
+yarn add utp-native --runtime=electron --target=3.1.2 --disturl=https://atom.io/download/at
+om-shell --build-from-source
+yarn add iltorb --runtime=electron --target=3.1.2 --disturl=https://atom.io/download/at
+om-shell --build-from-source
+```
+
+This trickiness is required (for now) because these libraries have to be compiled against the exact binary version of Node used by VSCode's Electron, otherwise the extension will throw an exception on startup.
 
 [farm]: https://github.com/inkandswitch/farm
