@@ -3,8 +3,8 @@ import * as vscode from "vscode"
 import { Handle, Repo, ChangeFn } from "hypermerge"
 const raf = require("random-access-file")
 
-const DiscoverySwarm = require("discovery-swarm");
-//import DiscoverySwarm from "discovery-cloud-client"
+//const DiscoverySwarm = require("discovery-swarm");
+import DiscoverySwarm from "discovery-cloud-client"
 
 const defaults = require('dat-swarm-defaults')
 
@@ -67,8 +67,8 @@ export class HypermergeWrapper extends EventEmitter {
       const id = this.repo.id
 
       const url = "wss://discovery-cloud.herokuapp.com"
-      //const hyperswarmwrapper = new DiscoverySwarm({ url, id, stream })
-      const hyperswarmwrapper = new DiscoverySwarm(defaults({ stream, id, port: 0 }));
+      const hyperswarmwrapper = new DiscoverySwarm({ url, id, stream })
+      //const hyperswarmwrapper = new DiscoverySwarm(defaults({ stream, id, port: 0 }));
       this.repo.replicate(hyperswarmwrapper)
     } catch (err) {
       console.log("Error in constructor", err)
