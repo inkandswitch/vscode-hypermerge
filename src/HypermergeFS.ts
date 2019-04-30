@@ -1,6 +1,7 @@
 "use strict"
 
 import * as vscode from "vscode"
+import { Text } from "automerge/frontend/text"
 import { HypermergeWrapper } from "./HypermergeWrapper"
 
 export default class HypermergeFS implements vscode.FileSystemProvider {
@@ -12,18 +13,6 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
     this.typeCache = new Map()
 
     this.hypermerge.on("update", uri => {
-      if (uri.path == "/text") {
-        // TODO:
-        const range = new vscode.Range(
-          new vscode.Position(0, 0),
-          new vscode.Position(0, 5),
-        )
-        const newText = "hello"
-        let edit = new vscode.WorkspaceEdit()
-        edit.replace(uri, range, newText)
-        vscode.workspace.applyEdit(edit)
-        return
-      }
       this._fireSoon({ type: vscode.FileChangeType.Changed, uri })
     })
   }
@@ -62,7 +51,7 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
     return this.hypermerge
       .openDocumentUri(uri)
       .then(document => {
-        // XXX: Generalize this to support leaf nodes
+        console.log(typeof document)
         switch (typeof document) {
           case "string":
             this.typeCache.set(uri.toString(), "string")
@@ -82,7 +71,16 @@ export default class HypermergeFS implements vscode.FileSystemProvider {
             } else {
               this.typeCache.set(uri.toString(), "object")
             }
-            return Buffer.from(JSON.stringify(document, undefined, 2))
+
+            function replacer(key, value) {
+              console.log(`replace ${key}, ${value} (${value instanceof Text})`)
+              if (value instanceof Text) {
+                return value.join('')
+              }
+              return value
+            }
+
+            return Buffer.from(JSON.stringify(document, replacer, 2))
         }
       })
       .catch(err => {
