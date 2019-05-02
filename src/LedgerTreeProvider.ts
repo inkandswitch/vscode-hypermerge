@@ -4,6 +4,8 @@ import { Uri } from "vscode"
 import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper"
 import { URL } from "url"
 
+// This should be a string or other primitive value (despite the appeal of using a richer data type)
+// because the VSCode internal APIs put it into a Set and lose the ability to recognize equality otherwise.  
 export type HypermergeNodeKey = string
 
 export enum SortOrder {
@@ -20,6 +22,7 @@ export default class LedgerTreeProvider
 
   protected sortOrder: SortOrder
   protected loaded = new Set<HypermergeNodeKey>()
+  // could use a titleCache to decide when to re-sort.
 
   constructor(protected readonly hypermergeWrapper: HypermergeWrapper) {
     this.hypermergeWrapper = hypermergeWrapper
@@ -38,6 +41,7 @@ export default class LedgerTreeProvider
 
   public refresh(resourceUri?: string): any {
     // let's put a debounce on this
+    console.log("refresh: " + resourceUri)
     this._onDidChangeTreeData.fire(resourceUri)
   }
 
@@ -171,23 +175,29 @@ export default class LedgerTreeProvider
         const contentfulDocs = [...meta.docs].map( async (docId) => {
           const nodeKey = "hypermerge:/" + docId
           if (!this.loaded.has(docId)) {
-            return [nodeKey, {}]
+            return [nodeKey, null]
           }
           return [nodeKey, await this.hypermergeWrapper.openDocumentUri(Uri.parse(nodeKey))]
         })
 
         const sortedDocs = Promise.all(contentfulDocs).then(loadedDocs => loadedDocs.sort((a: any, b: any) => {
-          const aTitle = a[1].title
-          const bTitle = b[1].title
-          console.log(aTitle, bTitle)
-          if (aTitle > bTitle) { 
+          if (!a[1]) {
             return 1
           }
-          if (aTitle < bTitle) { 
+          if (!b[1]) {
             return -1
           }
+
+          const aTitle = a[1].title
+          const bTitle = b[1].title
           const aKey = a[0]
           const bKey = b[0]
+          if (aTitle || bTitle) {
+            if (!aTitle) return -1
+            if (!bTitle) return 1
+            if (aTitle > bTitle) { return 1 }
+            if (aTitle < bTitle) { return -1 }
+          }
           if (aKey > bKey) { 
             return 1
           }
