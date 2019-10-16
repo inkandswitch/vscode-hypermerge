@@ -280,15 +280,12 @@
     "vscode": "^1.1.26"
   },
   "dependencies": {
-    "@hyperswarm/network": "0.0.4",
     "@types/pretty-bytes": "^5.1.0",
     "automerge": "^0.9.1",
     "bs58": "^4.0.1",
     "clipboardy": "^1.2.3",
-    "dat-swarm-defaults": "^1.0.1",
-    "discovery-cloud-client": "github:inkandswitch/discovery-cloud-client",
-    "discovery-swarm": "^5.1.2",
-    "hypermerge": "github:automerge/hypermerge#fork",
+    "hypermerge": "github:automerge/hypermerge",
+    "hyperswarm": "^2.2.0",
     "jsonc-parser": "^2.0.2",
     "odiff": "github:inkandswitch/odiff",
     "pretty-bytes": "^5.1.0",
