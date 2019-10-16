@@ -47,16 +47,14 @@ You'll want to [follow the instructions](https://code.visualstudio.com/docs/exte
 One of the trickier requirements of this project are a pair of C libraries called `utp-native` and `iltorb`. UTP is a high performance protocol similar to TCP but carried over UDP originally designed to improve Bittorrent bandwidth sharing. The `iltorb` library is an implementation of Brotli, a fast compression algorithm. Both libraries should be automatically compiled during yarn invocation, but if you run into issues with it you might try the following commands:
 
 ```
-$ npx electron-rebuild --version 3.1.2 -f
+$ npx electron-rebuild --version 4.2.10 -f
 ```
 
 or if that's not working,
 
 ```
-yarn add utp-native --runtime=electron --target=3.1.2 --disturl=https://atom.io/download/at
-om-shell --build-from-source
-yarn add iltorb --runtime=electron --target=3.1.2 --disturl=https://atom.io/download/at
-om-shell --build-from-source
+yarn add utp-native --runtime=electron --target=4.2.10 --disturl=https://atom.io/download/atom-shell --build-from-source
+yarn add iltorb --runtime=electron --target=4.2.10 --disturl=https://atom.io/download/atom-shell --build-from-source
 ```
 
 This trickiness is required (for now) because these libraries have to be compiled against the exact binary version of Node used by VSCode's Electron, otherwise the extension will throw an exception on startup.

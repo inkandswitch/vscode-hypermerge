@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 
 import { Handle, Repo, ChangeFn, DocUrl } from "hypermerge"
+import { DocId } from "hypermerge/dist/Misc"
 import Hyperswarm from "hyperswarm"
 const raf = require("random-access-file")
 
@@ -8,7 +9,7 @@ import { EventEmitter } from "events"
 import * as Diff from "./Diff"
 
 interface HypermergeNodeDetails {
-  docId: string
+  docId: DocId
   docUrl: DocUrl
   keyPath: string[]
   label?: string
@@ -34,11 +35,11 @@ export function interpretHypermergeUri(
     const history = historyString ? parseInt(historyString, 10) : undefined
 
     const label = input.get("label")
-    return { docId, keyPath, label, history, docUrl: ("hypermerge:/" + docId) as DocUrl }
+    return { docId: docId as DocId, keyPath, label, history, docUrl: ("hypermerge:/" + docId) as DocUrl }
   } else if (uri.scheme === "capstone") {
     const pathElements = uri.path.split("/")
     const docId = pathElements[1]
-    return { docId, keyPath: [], docUrl: ("hypermerge:/" + docId) as DocUrl }
+    return { docId: docId as DocId, keyPath: [], docUrl: ("hypermerge:/" + docId) as DocUrl }
   }
 
   return null
@@ -75,14 +76,17 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   removeDocumentUri(uri: vscode.Uri) {
-    const { docUrl } = interpretHypermergeUri(uri) || {}
-    if (!docUrl) { return }
+    const details = interpretHypermergeUri(uri)
+    if (!details) { return }
+    const { docUrl } = details
+
     delete this.handles[docUrl]
     this.repo.destroy(docUrl)
   }
 
   exists(uri: vscode.Uri): boolean {
-    const { docUrl = "" } = interpretHypermergeUri(uri) || {}
+    const { docUrl = null } = interpretHypermergeUri(uri) || {}
+    if (!docUrl) { return false }
     return !!this.handles[docUrl]
   }
 
@@ -110,10 +114,10 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   openDocumentUri(uri: vscode.Uri): Promise<any> {
-    const { docUrl, keyPath = [], history = undefined } =
-      interpretHypermergeUri(uri) || {}
+    const details = interpretHypermergeUri(uri)
 
-    if (!docUrl) { throw new Error("invalid doc URL") }
+    if (!details) { throw new Error("invalid doc URL") }
+    const { docUrl, keyPath = [], history = undefined } = details
 
     const h = this.handles
 
@@ -141,9 +145,9 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   watchDocumentUri(uri: vscode.Uri, cb: (doc: any) => void): void {
-    const { docUrl, keyPath = [], history = undefined } =
-      interpretHypermergeUri(uri) || {}
-    if (!docUrl) { throw new Error("no valid docURL") }
+    const details = interpretHypermergeUri(uri)
+    if (!details) { throw new Error("no valid docURL") }
+    const { docUrl, keyPath = [], history = undefined } = details
 
     const resolve = doc => cb(this.resolveSubDocument(doc, keyPath))
 
@@ -188,8 +192,10 @@ export class HypermergeWrapper extends EventEmitter {
   }
 
   setDocumentUri(uri: vscode.Uri, newDoc: any) {
-    const { docUrl, keyPath = [] } = interpretHypermergeUri(uri) || {}
-    if (!docUrl) { throw new Error("No valid doc URL")}
+    const details = interpretHypermergeUri(uri)
+    if (!details) { throw new Error("no valid docURL") }
+    const { docUrl, keyPath = [], history = undefined } = details
+
 
     // we use any types because the VSCode plugin can't possibly know the document
     this.repo.change<any>(docUrl, (doc: any) => {

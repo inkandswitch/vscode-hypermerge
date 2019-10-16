@@ -168,11 +168,14 @@ export default class LedgerTreeProvider
   }
 
   public async roots(): Promise<HypermergeNodeKey[]> {
-    const meta = this.hypermergeWrapper.repo.back.meta
+    const repo = this.hypermergeWrapper.repo
+    const meta = repo.back.meta
+    const clocks = repo.back.clocks
 
     return new Promise<HypermergeNodeKey[]>(resolve => {
       meta.readyQ.push(() => {
-        const contentfulDocs = [...meta.docs].map( async (docId) => {
+        const docs = clocks.getAllDocumentIds(repo.id)
+        const contentfulDocs = docs.map( async (docId) => {
           const nodeKey = "hypermerge:/" + docId
           if (!this.loaded.has(docId)) {
             return [nodeKey, null]

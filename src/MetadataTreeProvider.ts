@@ -51,7 +51,7 @@ export default class MetadataTreeProvider
     }
 
     // Create an array of results.
-    const { docId = "" } = details
+    const { docId } = details
     if (element === "actor") {
       // const meta = this.hypermergeWrapper.repo.meta(docId)!;
       // this funciton is Async :/  - using a hack instead
@@ -98,7 +98,8 @@ export default class MetadataTreeProvider
     }
 
     // Create an array of results.
-    const { docUrl = "" } = details
+    const { docUrl } = details
+    if (!docUrl) { throw new Error("invalid doc URL") }
 
     if (element === "clocks") {
       return new Promise(resolve => {

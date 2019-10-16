@@ -11,38 +11,28 @@ import prettyBytes from "pretty-bytes"
 
 import { HypermergeWrapper, interpretHypermergeUri } from "./HypermergeWrapper"
 import { Actor } from "hypermerge/dist/Actor"
+import { Feed } from "hypermerge/dist/FeedStore"
+import { DocId } from "hypermerge/dist/Misc"
 
 interface ErrorNode {
   type: "Error"
   message: string
 }
 
-interface ActorNode {
-  type: "Actor"
-  actor: Actor
+interface FeedNode {
+  type: "Feed"
+  feed: Feed
 }
 
 interface BlocksNode {
   type: "Blocks"
-  actor: Actor
+  feed: Feed
 }
 
 interface BlockNode {
   type: "Block"
-  actor: Actor
+  feed: Feed
   index: number
-}
-
-interface PeersNode {
-  type: "Peers"
-  actor: Actor
-}
-
-interface PeerNode {
-  type: "Peer"
-  actor: Actor
-  index: number
-  peer: any
 }
 
 interface InfoNode {
@@ -51,12 +41,10 @@ interface InfoNode {
 }
 
 export type Node =
-  | ActorNode
+  | FeedNode
   | ErrorNode
   | BlocksNode
   | BlockNode
-  | PeersNode
-  | PeerNode
   | InfoNode
 
 export default class FeedTreeProvider
@@ -77,7 +65,7 @@ export default class FeedTreeProvider
     clearInterval(this.interval)
   }
 
-  get activeDocId(): string | undefined {
+  get activeDocId(): DocId | undefined {
     const uri = this.activeDocumentUri
     if (!uri) return
 
@@ -107,31 +95,31 @@ export default class FeedTreeProvider
           label: `Error: ${node.message}`,
         }
 
-      case "Actor":
+      case "Feed":
         return {
           collapsibleState: State.Expanded,
-          label: node.actor.id.slice(0, 8),
-          description: node.actor.feed.writable ? "Writable" : "Readonly",
-          id: `Feed/${node.actor.id}`,
+          label: node.feed.id.slice(0, 8),
+          description: node.feed.writable ? "Writable" : "Readonly",
+          id: `Feed/${node.feed.id}`,
         }
 
       case "Blocks": {
-        const { feed } = node.actor as any
+        const { feed } = node.feed as any
         return {
           label: `${feed.downloaded(0, feed.length)} / ${feed.length} Blocks`,
           collapsibleState: State.Collapsed,
           description: prettyBytes(feed.byteLength),
-          id: `Blocks/${node.actor.id}`,
+          id: `Blocks/${node.feed.id}`,
         }
       }
 
       case "Block": {
         const resourceUri = Uri.parse(
-          `hypercore:/${node.actor.id}/${node.index}.json`,
+          `hypercore:/${node.feed.id}/${node.index}.json`,
         )
-        const isDownloaded = node.actor.feed.has(node.index)
+        const isDownloaded = node.feed.has(node.index)
 
-        return blockSize(node.actor.feed, node.index)
+        return blockSize(node.feed, node.index)
           .catch(_ => 0)
           .then(bytes => {
             const size = bytes ? prettyBytes(bytes) : ""
@@ -140,7 +128,7 @@ export default class FeedTreeProvider
               label: "Block " + node.index,
               collapsibleState: State.None,
               description: isDownloaded ? `✓ ${size}` : "Missing",
-              id: `Block/${node.actor.id}/${node.index}`,
+              id: `Block/${node.feed.id}/${node.index}`,
               resourceUri,
               command: {
                 command: "vscode.open",
@@ -149,37 +137,6 @@ export default class FeedTreeProvider
               },
             }
           })
-      }
-
-      case "Peers": {
-        const { peers } = node.actor.feed
-        const connectedCount = peers.reduce(
-          (n, peer: any) => (peer.stream.closed ? n : n + 1),
-          0,
-        )
-
-        return {
-          label: `${connectedCount} / ${peers.length} Peers`,
-          collapsibleState: State.Collapsed,
-          id: `Peers/${node.actor.id}`,
-        }
-      }
-
-      case "Peer": {
-        const { peer } = node
-        const id = peer.remoteId ? peer.remoteId.toString("hex") : "Local"
-        const tag = id.slice(0, 8)
-        const isOpen = !peer.stream.closed
-
-        const conn = connectionInfo(peer)
-        const description = join(conn ? conn.type : "", isOpen ? "✓" : "Closed")
-
-        return {
-          label: `Peer ${tag}`,
-          collapsibleState: isOpen ? State.Expanded : State.Collapsed,
-          description,
-          id: `Peer/${node.actor.id}/${peer._index}`,
-        }
       }
 
       case "Info": {
@@ -210,50 +167,19 @@ export default class FeedTreeProvider
 
       const actors = repo.back.docActors(back)
 
-      return actors.map(actorNode)
+      return actors.map(feedNode)
     }
 
     switch (node.type) {
-      case "Actor":
+      case "Feed":
         return [
-          { type: "Blocks", actor: node.actor },
-          { type: "Peers", actor: node.actor },
+          { type: "Blocks", feed: node.feed },
         ]
 
       case "Blocks":
-        return Array(node.actor.feed.length)
+        return Array(node.feed.length)
           .fill(0)
-          .map((_, i) => blockNode(node.actor, i))
-
-      case "Peers":
-        return node.actor.feed.peers.map((peer, i) =>
-          peerNode(node.actor, peer, i),
-        )
-
-      case "Peer": {
-        const conn = connectionInfo(node.peer)
-        if (!conn) return [infoNode({ label: "Connection info error" })]
-
-        return [
-          infoNode({ label: join("State:", conn.readyState) }),
-          infoNode({
-            label: join("Local:", conn.local.ip),
-            description: conn.local.port.toString(),
-          }),
-          infoNode({
-            label: join("Remote:", conn.remote.ip),
-            description: conn.remote.port.toString(),
-          }),
-          infoNode({
-            label: prettyBytes(conn.bytes.read),
-            description: "Received",
-          }),
-          infoNode({
-            label: prettyBytes(conn.bytes.written),
-            description: "Sent",
-          }),
-        ]
-      }
+          .map((_, i) => blockNode(node.feed, i))
 
       default:
         return []
@@ -285,16 +211,12 @@ function errorNode(message: string): ErrorNode {
   return { type: "Error", message }
 }
 
-function actorNode(actor: Actor): ActorNode {
-  return { type: "Actor", actor }
+function feedNode(feed: Feed): FeedNode {
+  return { type: "Feed", feed }
 }
 
-function blockNode(actor: Actor, index: number): BlockNode {
-  return { type: "Block", actor, index }
-}
-
-function peerNode(actor: Actor, peer: any, index: number): PeerNode {
-  return { type: "Peer", actor, peer, index }
+function blockNode(feed: Feed, index: number): BlockNode {
+  return { type: "Block", feed, index }
 }
 
 function infoNode(info: TreeItem): InfoNode {

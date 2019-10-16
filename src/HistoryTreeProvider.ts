@@ -90,7 +90,7 @@ export default class HistoryTreeProvider
     }
 
     // Create an array of results.
-    const { docUrl = "" } = details
+    const { docUrl } = details
     return new Promise(resolve => {
       this.hypermergeWrapper.repo.meta(docUrl, meta => {
         const n = meta && meta.type == "Document" ? meta.history : 0

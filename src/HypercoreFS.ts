@@ -4,6 +4,7 @@ import * as vscode from "vscode"
 import { HypermergeWrapper } from "./HypermergeWrapper"
 import { RepoBackend } from "hypermerge"
 import * as Block from "hypermerge/dist/Block"
+import { FeedId } from "hypermerge/dist/FeedStore"
 
 export default class HypercoreFS implements vscode.FileSystemProvider {
   back: RepoBackend
@@ -14,7 +15,7 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
 
   // --- manage file metadata
 
-  stat(uri: vscode.Uri): vscode.FileStat {
+  async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
     const details = parseUri(uri)
 
     if (!details) throw vscode.FileSystemError.FileNotFound(uri)
@@ -23,10 +24,10 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
 
     if (blockIndex == null) throw vscode.FileSystemError.FileNotFound(uri)
 
-    const actor = this.back.actor(feedId)
-    if (!actor) throw vscode.FileSystemError.FileNotFound(uri)
+    const feed = await this.back.feeds.getFeed(feedId)
+    if (!feed) throw vscode.FileSystemError.FileNotFound(uri)
 
-    if (!actor.feed.has(blockIndex))
+    if (!feed.has(blockIndex))
       throw vscode.FileSystemError.FileNotFound(uri)
 
     return {
@@ -43,7 +44,7 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
 
   // --- manage file contents
 
-  readFile(uri: vscode.Uri): Thenable<Uint8Array> {
+  async readFile(uri: vscode.Uri): Promise<Uint8Array> {
     const details = parseUri(uri)
 
     if (!details) throw vscode.FileSystemError.FileNotFound(uri)
@@ -52,14 +53,15 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
 
     if (blockIndex == null) throw vscode.FileSystemError.FileNotFound(uri)
 
-    const actor = this.back.actor(feedId)
-    if (!actor) throw vscode.FileSystemError.FileNotFound(uri)
+    const feed = await this.back.feeds.getFeed(feedId)
 
-    if (!actor.feed.has(blockIndex))
+    if (!feed) throw vscode.FileSystemError.FileNotFound(uri)
+
+    if (!feed.has(blockIndex))
       throw vscode.FileSystemError.FileNotFound(uri)
 
     return new Promise((res, rej) => {
-      ;(<any>actor.feed).get(
+      ;(<any>feed).get(
         blockIndex,
         { wait: false },
         (err: Error | null, data?: Uint8Array) => {
@@ -121,7 +123,7 @@ export default class HypercoreFS implements vscode.FileSystemProvider {
 }
 
 interface Details {
-  feedId: string
+  feedId: FeedId
   blockIndex?: number
 }
 
@@ -135,7 +137,7 @@ function parseUri(uri: vscode.Uri): Details | undefined {
   const blockIndex = indexString ? parseInt(indexString, 10) : undefined
 
   return {
-    feedId,
+    feedId: feedId as FeedId,
     blockIndex,
   }
 }
