@@ -269,25 +269,23 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "format": "prettier --write 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/node": "^10.2.0",
     "electron-rebuild": "^1.8.6",
     "prettier": "^1.16.1",
-    "typescript": "^3.1.4",
-    "vscode": "^1.1.26"
+    "typescript": "^3.1.4"
   },
   "dependencies": {
     "@types/better-sqlite3": "^5.4.0",
     "@types/pretty-bytes": "^5.1.0",
+    "@types/vscode": "^1.46.0",
     "automerge": "^0.9.1",
     "bs58": "^4.0.1",
     "clipboardy": "^1.2.3",
     "hypermerge": "github:automerge/hypermerge",
     "hyperswarm": "^2.2.0",
-    "iltorb": "^2.4.3",
     "jsonc-parser": "^2.0.2",
     "odiff": "github:inkandswitch/odiff",
     "pretty-bytes": "^5.1.0",

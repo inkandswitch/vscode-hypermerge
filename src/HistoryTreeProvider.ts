@@ -23,7 +23,7 @@ export default class HistoryTreeProvider
         this.activeDocumentUri &&
         this.activeDocumentUri.toString() === updatedDocumentUri.toString()
       ) {
-        this._onDidChangeTreeData.fire()
+        this._onDidChangeTreeData.fire(undefined)
       }
     })
   }

@@ -40,23 +40,24 @@ Hypermerge can open arbitrary hypermerge files and treat them as both JSON and n
 
 You'll want to [follow the instructions](https://code.visualstudio.com/docs/extensions/publish-extension) in the VSCE user manual, but to publish after setting up your Personal Access Token, run `vsce publish --yarn`.
 
-*Note: Releases with binary dependencies like iltorb and utp-native don't work very well in the VSCode extension marketplace at the moment, since you can only include a single platform's binaries there.*
+*Note: Releases with binary dependencies like utp-native don't work very well in the VSCode extension marketplace at the moment, since you can only include a single platform's binaries there.*
 
-## UTP-native / iltorb binary dependencies
+## UTP-native binary dependencies
 
-One of the trickier requirements of this project are a pair of C libraries called `utp-native` and `iltorb`. UTP is a high performance protocol similar to TCP but carried over UDP originally designed to improve Bittorrent bandwidth sharing. The `iltorb` library is an implementation of Brotli, a fast compression algorithm. Both libraries should be automatically compiled during yarn invocation, but if you run into issues with it you might try the following commands:
+One of the trickier requirements of this project is the C library `utp-native`. UTP is a high performance protocol similar to TCP but carried over UDP originally designed to improve Bittorrent bandwidth sharing. Both libraries should be automatically compiled during yarn invocation, but if you run into issues with it you might try the following commands:
+
+NB: The Electron version changes from time to time with new VSCode releases. The correct version string can be found in the "About" panel in VSCode.
 
 ```
-$ npx electron-rebuild --version 4.2.10 -f
+$ npx electron-rebuild --version 7.2.4 -f
 ```
 
 or if that's not working,
 
 ```
-yarn add utp-native --runtime=electron --target=4.2.10 --disturl=https://atom.io/download/atom-shell --build-from-source
-yarn add iltorb --runtime=electron --target=4.2.10 --disturl=https://atom.io/download/atom-shell --build-from-source
+yarn add utp-native --runtime=electron --target=7.2.4 --disturl=https://atom.io/download/atom-shell --build-from-source
 ```
 
-This trickiness is required (for now) because these libraries have to be compiled against the exact binary version of Node used by VSCode's Electron, otherwise the extension will throw an exception on startup.
+This trickiness is required (for now) because this library has to be compiled against the exact binary version of Node used by VSCode's Electron, otherwise the extension will throw an exception on startup.
 
 [farm]: https://github.com/inkandswitch/farm
