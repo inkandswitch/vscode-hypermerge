@@ -292,7 +292,7 @@
     "random-access-file": "^2.0.1",
     "random-access-memory": "^3.0.0",
     "utp-native": "^2.1.4",
-    "ws": "^6.1.0"
+    "ws": "^7.4.6"
   },
   "__metadata": {
     "id": "b46e5495-640d-4264-87b9-9182d116ac0b",
